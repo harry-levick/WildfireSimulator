@@ -1,0 +1,46 @@
+﻿code,number,name,description,type,fuel bed depth,dead fuel moisture of extinction,characteristic sav,bulk density,relative packing ratio
+NB1,91,Urban,Non burnable.,none,0,0,0,0,0
+NB2,92,Snow/Ice,Non burnable.,none,0,0,0,0,0
+NB3,93,Agriculture,Non burnable.,none,0,0,0,0,0
+NB8,98,Water,Non burnable.,none,0,0,0,0,0
+NB9,99,Barren,Non burnable.,none,0,0,0,0,0
+GR1,101,"Short, sparse, dry climate grass","Short, sparse dry climate grass is short, naturally or heavy grazing, predicted rate of fire spread and flame length low.",Dynamic,0.4,0.15,2054,0.05,0.22
+GR2,102,"Low load, dry climate grass","Low load, dry climate grass primarily grass with some small amounts of fine, dead fuel, any shrubs do not affect fire behavior.",Dynamic,1,0.15,1820,0.05,0.22
+GR3,103,"Low load, very coarse, humid climate grass","Low load, very coarse, humid climate grass continuous, coarse humid climate grass, any shrubs do not affect fire behavior.",Dynamic,2,0.3,1290,0.05,0.15
+GR4,104,"Moderate load, humid climate grass","Moderate load, dry climate grass, continuous, dry climate grass, fuelbed depth about 2 feet.",Dynamic,2,0.15,1826,0.05,0.22
+GR5,105,"High load, dry climate grass","Low load, humid climate grass, fuelbed depth is about 1-2 feet.",Dynamic,1.5,0.4,1631,0.09,0.35
+GR6,106,"High load, very coarse, humid climate grass","Moderate load, continuous humid climate grass, not so coarse as GR5.",Dynamic,1.5,0.4,2006,0.11,0.51
+GR7,107,"High load, dry climate grass","High load, continuous dry climate grass, grass is about 3 feet high.",Dynamic,3,0.15,1834,0.1,0.43
+GR8,108,"High load, very coarse, humid climate grass","High load, very coarse, continuous, humid climate grass, spread rate and flame length may be extreme if grass is fully cured.",Dynamic,4,0.3,1302,0.1,0.33
+GR9,109,"Very high load, humid climate grass","Very high load, dense, tall, humid climate grass, about 6 feet tall, spread rate and flame length can be extreme if grass is fully cured.",Dynamic,5,0.4,1612,0.1,0.4
+GS1,121,"Low load, dry climate grass-shrub","Low load, dry climate grass-shrub shrub about 1 foot high, grass load low, spread rate moderate and flame length low.",Dynamic,0.9,0.15,1832,0.07,0.3
+GS2,122,"Moderate load, dry climate grass-shrub","Moderate load, dry climate grass-shrub, shrubs are 1-3 feet high, grass load moderate, spread rate high, and flame length is moderate.",Dynamic,1.5,0.15,1827,0.08,0.35
+GS3,123,"Moderate load, humid climate grass-shrub","Moderate load, humid climate grass-shrub, moderate grass/shrub load, grass/shrub depth is less than 2 feet, spread rate is high and flame length is moderate.",Dynamic,1.8,0.4,1614,0.08,0.33
+GS4,124,"High load, humid climate grass-shrub","High load, humid climate grass-shrub, heavy grass/shrub load, depth is greater than 2 feet, spread rate is high and flame length very high.",Dynamic,2.1,0.4,1631,0.28,1.12
+SH1,141,"Low load, dry climate shrub","Low load dry climate shrub, woody shrubs and shrub litter, fuelbed depth about 1 foot, may be some grass, spread rate and flame low.",Dynamic,1,0.15,1674,0.09,0.36
+SH2,142,"Moderate load, dry climate shrub","Moderate load dry climate shrub, woody shrubs and shrub litter, fuelbed depth about 1 foot, no grass, spread rate and flame low.",Static,1,0.15,1672,0.38,1.56
+SH3,143,"Moderate load, humid climate shrub","Moderate load, humid climate shrub, woody shrubs and shrub litter, possible pine overstory, fuelbed depth 2- 3 feet, spread rate and flame low.",Static,2.4,0.4,1371,0.18,0.64
+SH4,144,"Low load, humid climate timber-shrub","Low load, humid climate timber shrub, woody shrubs and shrub litter, low to moderate load, possible pine overstory, fuelbed depth about 3 feet, spread rate high and flame moderate.",Static,3,0.3,1682,0.07,0.3
+SH5,145,"High load, dry climate shrub","High load, humid climate grass-shrub combined, heavy load with depth greater than 2 feet, spread rate and flame very high.",Static,6,0.15,1252,0.07,0.21
+SH6,146,"Low load, humid climate shrub","Low load, humid climate shrub, woody shrubs and shrub litter, dense shrubs, little or no herbaceous fuel, depth about 2 feet, spread rate and flame high.",Static,2,0.3,1144,0.13,0.39
+SH7,147,"Very high load, dry climate shrub","Very high load, dry climate shrub, woody shrubs and shrub litter, very heavy shrub load, depth 4-6 feet, spread rate somewhat lower than SH6 and flame very high.",Static,6,0.15,1233,0.11,0.35
+SH8,148,"High load, humid climate shrub","High load, humid climate shrub, woody shrubs and shrub litter, dense shrubs, little or no herbaceous fuel, depth about 3 feet, spread rate and flame high.",Static,3,0.4,1386,0.16,0.57
+SH9,149,"Very high load, humid climate shrub","Very high load, humid climate shrub, woody shrubs and shrub litter, dense finely branched shrubs with fine dead fuel, 4-6 feet tall, herbaceous may be present, spread rate and flame high.",Dynamic,4.4,0.4,1378,0.16,0.56
+TU1,161,"Light load, dry climate timber-grass-shrub","Low load dry climate timber grass shrub, low load of grass and/or shrub with litter, spread rate and flame low.",Dynamic,0.6,0.2,1606,0.28,1.12
+TU2,162,"Moderate load, humid climate timber-shrub","Moderate load, humid climate timber-shrub, moderate litter load with some shrub, spread rate moderate and flame low.",Static,1,0.3,1767,0.19,0.82
+TU3,163,"Moderate load, humid climate timber-grass-shrub","Moderate load, humid climate timber grass shrub, moderate forest litter with some grass and shrub, spread rate high and flame moderate.",Dynamic,1.3,0.3,1611,0.11,0.45
+TU4,164,Dwarf conifer understory,"Dwarf conifer with understory, short conifer trees with grass or moss understory, spread rate and flame moderate.",Static,0.5,0.12,2216,0.6,3.06
+TU5,165,"Very high load, dry climate timber-shrub","Very high load, dry climate shrub, heavy forest litter with shrub or small tree understory, spread rate and flame moderate.",Static,1,0.25,1224,0.64,2.03
+TL1,181,"Low load, compact conifer litter","Low load compact conifer litter, compact forest litter, light to moderate load, 1-2 inches deep, may represent a recent burn, spread rate and flame low.",Static,0.2,0.3,1716,1.56,6.49
+TL2,182,Low broadleaf litter,"Low load broadleaf litter, broadleaf, hardwood litter, spread rate and flame low.",Static,0.2,0.25,1806,1.35,5.87
+TL3,183,Moderate load conifer litter,"Moderate load conifer litter, moderate load conifer litter, light load of coarse fuels, spread rate and flame low.",Static,0.3,0.2,1532,0.84,3.19
+TL4,184,Small downed logs,"Small downed logs moderate load of fine litter and coarse fuels, small diameter downed logs, spread rate and flame low.",Static,0.4,0.25,1568,0.71,2.75
+TL5,185,High load conifer,"High load conifer litter, light slash or dead fuel, spread rate and flame low.",Static,0.6,0.25,1713,0.62,2.56
+TL6,186,Moderate load broadleaf litter,"Moderate load broadleaf litter, spread rate and flame moderate.",Static,0.3,0.25,1936,0.73,3.37
+TL7,187,large downed logs,"Large downed logs, heavy load forest litter, larger diameter downed logs, spread rate and flame low.",Static,0.4,0.25,1229,1.12,3.56
+TL8,188,Long-needle litter,"Long needle litter, moderate load long needle pine litter, may have small amounts of herbaceous fuel, spread rate moderate and flame low.",Static,0.3,0.35,1770,1.27,5.42
+TL9,189,Very high load broadleaf litter,"Very high load broadleaf litter, may be heavy needle drape, spread rate and flame moderate.",Static,0.6,0.35,1733,1.08,4.52
+SB1,201,Low load activity fuel,"Low load activity fuel, light dead and down activity fuel, fine fuel is 10-20 t/ac, 1-3 inches in diameter, depth < 1 foot, spread rate moderate and flame low.",Static,1,0.25,1653,0.71,2.87
+SB2,202,Moderate load activity or low load blowdown,"Moderate load activity fuel or low load blowdown, 7-12 t/ac, 0-3 inch diameter class, depth about 1 foot, blowdown scattered with many still standing, spread rate and flame low.",Static,1,0.25,1884,0.59,2.63
+SB3,203,High load activity fuel or moderate low blowdown,"High load activity fuel or moderate load blowdown, heavy dead down activity fuel or moderate blowdown, 7- 12t/ac, 0-.25 inch diameter class, depth > 1 foot, blowdown moderate, spread rate and flame high.",Static,1.2,0.25,1935,0.43,1.97
+SB4,204,High load blowdown,"High load blowdown, heavy blowdown fuel, blowdown total, foliage and fine fuel still attached to blowdown, spread rate and flame very high.",Static,2.7,0.25,1907,0.24,1.08
