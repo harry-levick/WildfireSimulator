@@ -6,7 +6,6 @@ from common.constants import *
 from flask import Flask, Response
 from flask import jsonify, request
 from shapely.geometry import Point
-import traceback
 
 app = Flask(__name__)
 
@@ -19,27 +18,30 @@ def get_model_code() -> Response:
     """
     :body Takes a Json list body that contains
             a single GeoJson object for each coordinate
-    :return: a Json list containing the model code for
+    :return: a Json array containing the model code for
             each coordinate given
     """
     if not request.json:
         return Response(status=200)
 
-    coordinates = []
-    for feature in request.json:
-        lat, long = feature['geometry']['coordinates']
-        coordinates.append(Point(long, lat))
+    input_coordinates = []
+    try:
+        for feature in request.json:
+            lat, long = feature['geometry']['coordinates']
+            input_coordinates.append(Point(long, lat))
+    except:
+        return Response(status=400)
 
-    if not coordinates:
-        Response(status=400)
+    if not input_coordinates:
+        return Response(status=400)
 
-    coordinates_df = gpd.GeoDataFrame(coordinates, columns=['geometry'], crs=WGS84)\
-                        .to_crs(ALBERS_EQUAL_AREA_CONIC)
+    # convert the (long, lat) points in degrees to the CRS being used by the dataset
+    points_df = gpd.GeoDataFrame(input_coordinates, columns=['geometry'], crs=WGS84).to_crs(ALBERS_EQUAL_AREA_CONIC)
 
-    model_codes = []
-    for index, row in coordinates_df.iterrows():
-        sample = dataset.sample([(row.geometry.centroid.x, row.geometry.centroid.y)])
-        model_codes.append(str(list(sample)[0][0]))
+    codes = []
+    for index, row in points_df.iterrows():
+        for [val] in dataset.sample([(row.geometry.centroid.x, row.geometry.centroid.y)]):
+            codes.append(val)
 
-    return jsonify(model_codes), 200
+    return jsonify(codes), 200
 
