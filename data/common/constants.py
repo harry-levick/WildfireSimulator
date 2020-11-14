@@ -1,4 +1,4 @@
-FUEL_MODEL_CLASSIFIED = "40_scott_and_burgan_fuel_models_classified.tif"
+FUEL_MODEL_CLASSIFIED = "40_scott_and_burgan_fire_behaviour_fuel_models_classified.tif"
 
 # Coordinate Reference System's used
 WGS84 = "EPSG:4326" # WGS84 latitude-longitude CRS
