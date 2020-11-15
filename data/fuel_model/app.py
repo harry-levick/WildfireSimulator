@@ -41,7 +41,7 @@ def get_model_code() -> Response:
     codes = []
     for index, row in points_df.iterrows():
         for [val] in dataset.sample([(row.geometry.centroid.x, row.geometry.centroid.y)]):
-            codes.append(val)
+            codes.append(str(val))
 
     return jsonify(codes), 200
 
