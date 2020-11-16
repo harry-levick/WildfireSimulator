@@ -1,16 +1,20 @@
-import geopandas as gpd
 import os.path
 import pathlib
+import pandas as pd
 import rasterio as rio
 from common.constants import *
 from flask import Flask, Response
 from flask import jsonify, request
-from shapely.geometry import Point
 
 app = Flask(__name__)
 
-geotiff = os.path.join(pathlib.Path(__file__).parent.absolute(), 'data', FUEL_MODEL_CLASSIFIED)
-dataset = rio.open(geotiff)
+geodata = os.path.join(pathlib.Path(__file__).parent.absolute(), 'data', FUEL_MODEL_CLASSIFIED)
+geodata_classes = os.path.join(pathlib.Path(__file__).parent.absolute(), 'data', FUEL_MODEL_CLASSES)
+
+dataset = rio.open(geodata)
+classes = pd.read_csv(geodata_classes)
+
+
 
 
 @app.route('/model-code', methods=['GET'])
@@ -22,26 +26,27 @@ def get_model_code() -> Response:
             each coordinate given
     """
     if not request.json:
-        return Response(status=200)
+        return Response(status=400)
 
-    input_coordinates = []
+    output_codes = []
     try:
         for feature in request.json:
             lat, long = feature['geometry']['coordinates']
-            input_coordinates.append(Point(long, lat))
-    except:
+
+            try:
+                [value] = dataset.sample([(long, lat)])
+                code = value.item()
+            except ValueError:
+                return Response(status=500)
+
+            # coordinate given out of bounds
+            if int(code) not in classes['number'].values:
+                raise ValueError
+
+            output_codes.append(value.item())
+
+    except (KeyError, ValueError): # body not correctly formatted
         return Response(status=400)
 
-    if not input_coordinates:
-        return Response(status=400)
-
-    # convert the (long, lat) points in degrees to the CRS being used by the dataset
-    points_df = gpd.GeoDataFrame(input_coordinates, columns=['geometry'], crs=WGS84).to_crs(ALBERS_EQUAL_AREA_CONIC)
-
-    codes = []
-    for index, row in points_df.iterrows():
-        for [val] in dataset.sample([(row.geometry.centroid.x, row.geometry.centroid.y)]):
-            codes.append(str(val))
-
-    return jsonify(codes), 200
+    return jsonify(output_codes), 200
 
