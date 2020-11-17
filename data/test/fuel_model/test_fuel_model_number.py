@@ -1,9 +1,9 @@
 import json
 import unittest
-from fuel_model import app
+from src.fuel_model import app
 
 
-class GetFuelModelTest(unittest.TestCase):
+class TestGetFuelModelNumber(unittest.TestCase):
     def setUp(self) -> None:
         """
         Executed prior to each unit test.
