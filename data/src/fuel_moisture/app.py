@@ -12,7 +12,7 @@ raster_dataset = rio.open(lfmc_classified)
 
 
 @app.route('/live-fuel-moisture-content', methods=['GET'])
-def get_model_code() -> Response:
+def get_live_fuel_moisture() -> Response:
     """
     :body Takes a Json list body that contains
             a single GeoJson object for each coordinate
