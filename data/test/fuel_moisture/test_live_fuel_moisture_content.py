@@ -3,7 +3,7 @@ import unittest
 from src.fuel_moisture import app
 
 
-class MyTestCase(unittest.TestCase):
+class TestGetLiveFuelMoisture(unittest.TestCase):
     def setUp(self) -> None:
         """
         Executed prior to each unit test.
