@@ -5,11 +5,10 @@ public class CameraController : MonoBehaviour
 {
     [SerializeField] float speed = 0.5f;
     [SerializeField] float sensitivity = 0.1f;
-    [SerializeField] float distance = 1000f;
     bool isMousePressed = false;
 
-    Camera cam;
     AbstractMap map;
+    Camera cam;
     Vector3 anchorPoint;
     Quaternion anchorRot;
 
@@ -19,6 +18,11 @@ public class CameraController : MonoBehaviour
         map = UnityEngine.Object.FindObjectOfType<AbstractMap>();
     }
 
+    /* 
+     * FixedUpdate runs once per physics frame. Should be used when applying
+     * forces, torques, or other physics-related functions because you know 
+     * it will be executed exactly in sync with the physics engine itself.
+    */
     void FixedUpdate()
     {
         Vector3 move = Vector3.zero;
@@ -65,14 +69,18 @@ public class CameraController : MonoBehaviour
 
         if (isMousePressed)
         {
-            var mousePosScreen = Input.mousePosition;
-
-            mousePosScreen.z = Camera.main.transform.localPosition.y;
-            var pos = Camera.main.ScreenToWorldPoint(mousePosScreen);
-
-            var latlongDelta = map.WorldToGeoPosition(pos);
+            var latlongDelta = GetTerrainLatLong(Input.mousePosition);
             print($"Latitude: {latlongDelta.x} , Longitude: {latlongDelta.y}");
         }
+    }
+
+    Mapbox.Utils.Vector2d GetTerrainLatLong(Vector3 mousePosScreen)
+    {
+        mousePosScreen.z = Camera.main.transform.localPosition.y;
+        var mousePosTerrain = Camera.main.ScreenToWorldPoint(mousePosScreen);
+        var latLongDelta = map.WorldToGeoPosition(mousePosTerrain);
+
+        return latLongDelta;
     }
 }
 
