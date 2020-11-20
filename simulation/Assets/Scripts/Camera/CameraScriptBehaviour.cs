@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using Mapbox.Unity.Map;
 
-public class CameraController : MonoBehaviour
+public class CameraScriptBehaviour : MonoBehaviour
 {
-    [SerializeField] float speed = 0.5f;
-    [SerializeField] float sensitivity = 0.1f;
+    [SerializeField]
+    float speed = 0.5f;
+    [SerializeField]
+    float sensitivity = 0.1f;
     bool isMousePressed = false;
 
     AbstractMap map;
@@ -76,11 +78,10 @@ public class CameraController : MonoBehaviour
 
     Mapbox.Utils.Vector2d GetTerrainLatLong(Vector3 mousePosScreen)
     {
-        mousePosScreen.z = Camera.main.transform.localPosition.y;
-        var mousePosTerrain = Camera.main.ScreenToWorldPoint(mousePosScreen);
+        mousePosScreen.z = cam.transform.localPosition.y;
+        var mousePosTerrain = cam.ScreenToWorldPoint(mousePosScreen);
         var latLongDelta = map.WorldToGeoPosition(mousePosTerrain);
 
         return latLongDelta;
     }
 }
-
