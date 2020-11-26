@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using Mapbox.Unity.Map;
+﻿using Mapbox.Unity.Map;
+using Mapbox.Utils;
+using UnityEngine;
 
 public class CameraScriptBehaviour : MonoBehaviour
 {
@@ -8,16 +9,16 @@ public class CameraScriptBehaviour : MonoBehaviour
     [SerializeField]
     float sensitivity = 0.1f;
     bool isMousePressed = false;
-
-    AbstractMap map;
-    Camera cam;
-    Vector3 anchorPoint;
-    Quaternion anchorRot;
+    Vector3 North = new Vector3(0, 0, 1);
+    AbstractMap Map;
+    Camera Cam;
+    Vector3 AnchorPoint;
+    Quaternion AnchorRot;
 
     private void Awake()
     {
-        cam = GetComponent<Camera>();
-        map = UnityEngine.Object.FindObjectOfType<AbstractMap>();
+        Cam = GetComponent<Camera>();
+        Map = UnityEngine.Object.FindObjectOfType<AbstractMap>();
     }
 
     /* 
@@ -44,13 +45,13 @@ public class CameraScriptBehaviour : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
-            anchorPoint = new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
-            anchorRot = transform.rotation;
+            AnchorPoint = new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
+            AnchorRot = transform.rotation;
         }
         if (Input.GetMouseButton(1))
         {
-            Quaternion rot = anchorRot;
-            Vector3 dif = anchorPoint - new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
+            Quaternion rot = AnchorRot;
+            Vector3 dif = AnchorPoint - new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
             rot.eulerAngles += dif * sensitivity;
             transform.rotation = rot;
         }
@@ -71,17 +72,65 @@ public class CameraScriptBehaviour : MonoBehaviour
 
         if (isMousePressed)
         {
-            var latlongDelta = GetTerrainLatLong(Input.mousePosition);
-            print($"Latitude: {latlongDelta.x} , Longitude: {latlongDelta.y}");
+
+            Ray ray = Cam.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hitInfo;
+            if (Physics.Raycast(ray, out hitInfo, Mathf.Infinity))
+            {
+                var latlon = GetLatLon(hitInfo);
+                var elevation = GetAltitudeInMeters(hitInfo);
+                var slope = GetSlopeInDegrees(hitInfo);
+                var heading = GetSlopeBearingInDegrees(hitInfo);
+
+                print($"Latitude: {latlon.x} , Longitude: {latlon.y}");
+                print($"Elevation: {elevation}");
+                print($"Slope degrees: {slope}");
+                print($"Upslope heading: {heading}");
+            }
+
         }
     }
 
-    Mapbox.Utils.Vector2d GetTerrainLatLong(Vector3 mousePosScreen)
+    float BearingBetweenInDegrees(Vector3 a, Vector3 b)
     {
-        mousePosScreen.z = cam.transform.localPosition.y;
-        var mousePosTerrain = cam.ScreenToWorldPoint(mousePosScreen);
-        var latLongDelta = map.WorldToGeoPosition(mousePosTerrain);
+        Vector3 normal = Vector3.up;
+        // angle in [0, 180]
+        float angle = Vector3.Angle(a, b);
+        float sign = Mathf.Sign(Vector3.Dot(normal, Vector3.Cross(a, b)));
 
-        return latLongDelta;
+        // angle in [-179, 180]
+        float signedAngle = angle * sign;
+
+        // angle in [0, 360]
+        float bearing = (signedAngle + 360) % 360;
+        return bearing;
     }
+
+    Vector2d GetLatLon(RaycastHit hitInfo)
+    {
+        return Map.WorldToGeoPosition(hitInfo.point);
+    }
+
+    float GetAltitudeInMeters(RaycastHit hitInfo)
+    {
+        return Map.QueryElevationInMetersAt(GetLatLon(hitInfo));
+    }
+
+    float GetSlopeInDegrees(RaycastHit hitInfo)
+    {
+        Vector3 normal = hitInfo.normal;
+        return Vector3.Angle(normal, Vector3.up);
+    }
+
+    float GetSlopeBearingInDegrees(RaycastHit hitInfo)
+    {
+        Vector3 normal = hitInfo.normal;
+
+        Vector3 left = Vector3.Cross(normal, Vector3.down);
+        Vector3 upslope = Vector3.Cross(normal, left);
+        Vector3 upslopeFlat = new Vector3(upslope.x, 0, upslope.z).normalized;
+
+        return BearingBetweenInDegrees(North, upslopeFlat);
+    }
+
 }
