@@ -11,6 +11,7 @@ public class CameraScriptBehaviour : MonoBehaviour
     bool isMousePressed = false;
     Vector3 North = new Vector3(0, 0, 1);
     AbstractMap Map;
+    GameObject MapObject;
     Camera Cam;
     Vector3 AnchorPoint;
     Quaternion AnchorRot;
@@ -19,6 +20,7 @@ public class CameraScriptBehaviour : MonoBehaviour
     {
         Cam = GetComponent<Camera>();
         Map = UnityEngine.Object.FindObjectOfType<AbstractMap>();
+        MapObject = GameObject.Find("Map");
     }
 
     /* 
@@ -86,6 +88,11 @@ public class CameraScriptBehaviour : MonoBehaviour
                 print($"Elevation: {elevation}");
                 print($"Slope degrees: {slope}");
                 print($"Upslope heading: {heading}");
+
+
+                FireBehaviour newFire = MapObject.AddComponent<FireBehaviour>();
+                newFire.IgnitionPoint = hitInfo.point;
+                newFire.Map = this.Map;
             }
 
         }
