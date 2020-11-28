@@ -1,4 +1,4 @@
-﻿code,number,name,description,type,fuel bed depth,dead fuel moisture of extinction,characteristic sav,bulk density,relative packing ratio
+﻿code,number,name,description,type,fuel_bed_depth,dead_fuel_moisture_of_extinction,characteristic_sav,bulk_density,relative_packing_ratio
 NB1,91,Urban,Non burnable.,none,0,0,0,0,0
 NB2,92,Snow/Ice,Non burnable.,none,0,0,0,0,0
 NB3,93,Agriculture,Non burnable.,none,0,0,0,0,0
