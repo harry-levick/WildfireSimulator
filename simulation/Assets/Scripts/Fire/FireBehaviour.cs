@@ -30,10 +30,30 @@ public class FireBehaviour : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        var rateofSpread = RateOfSpreadNoWindSlope(IgnitionPoint);
-        RaycastHit hitInfo = GetHitInfo(IgnitionPoint);
-        var slope = GetSlopeInDegrees(hitInfo);
-        var slopeBearing = GetSlopeBearingInDegrees(hitInfo);
+        PrintStatus();
+    }
+
+    async void PrintStatus()
+    {
+        var rateOfSpreadNoWindSlope = await RateOfSpreadNoWindSlope(IgnitionPoint);
+        var rateOfSpreadSameWindSlope = await RateOfSpreaUpslopeWind(IgnitionPoint);
+        var rateOfMaximumSpread = await RateOfMaximumSpread(IgnitionPoint);
+        WeatherModel weather = await MidflameWindSpeed(IgnitionPoint);
+        var windFactor = await WindFactor(IgnitionPoint, weather.current);
+        var slopeFactor = await SlopeFactor(IgnitionPoint);
+        var slopeInDegrees = GetSlopeInDegrees(GetHitInfo(IgnitionPoint));
+
+        print($"Rate of spread no wind or slope: {rateOfSpreadNoWindSlope}");
+        print($"Rate of spread upslope wind: {rateOfSpreadSameWindSlope.spreadRate}");
+        print($"Bearing of upslope wind: {rateOfSpreadSameWindSlope.spreadBearing}");
+        print($"Rate of maximum spread: {rateOfMaximumSpread.spreadRate}");
+        print($"Bearing of maximum spread: {rateOfMaximumSpread.spreadBearing}");
+        print($"Wind bearing: {weather.current.wind_deg}");
+        print($"Wind speed: {weather.current.wind_speed}");
+        print($"Wind factor: {windFactor}");
+        print($"Slope in degrees: {slopeInDegrees}");
+        print($"Slope bearing: {GetSlopeBearingInDegrees(GetHitInfo(IgnitionPoint))}");
+        print($"Slope factor: {slopeFactor}");
     }
 
     // Update is called once per frame
@@ -41,18 +61,12 @@ public class FireBehaviour : MonoBehaviour
     {
     }
 
-    async Task<float> RateOfSpreadSameWindSlopeDirection(Vector3 point)
-    {
-        float r0 = await RateOfSpreadNoWindSlope(point); // zero-wind, zero-slope rate of spread
-        float windFactor;
-        float slopeFactor;
-
-
-        return 0.0f;
-    }
-
-
-    async Task<float> RateOfSpreadNoWindSlope(Vector3 point)
+    /// <summary>
+    /// Returns the rate of spread of fire in ft/min given no wind or slope.
+    /// </summary>
+    /// <param name="point">the unity point in game space</param>
+    /// <returns></returns>
+    private async Task<float> RateOfSpreadNoWindSlope(Vector3 point)
     {
         FuelModel model = await FuelModelParameters(point);
         float fuelMoisture = await FuelMoistureContent(point);
@@ -69,13 +83,72 @@ public class FireBehaviour : MonoBehaviour
         float fuelBedDepth = model.fuel_bed_depth;
         float deadFuelMoistureOfExtinction = model.dead_fuel_moisture_of_extinction;
 
-        float propFluxNoWindSlope =
-            PropagatingFluxNoWindSlope(fuelMoisture, model);
+        float propFluxNoWindSlope = await PropagatingFluxNoWindSlope(point);
 
         float heatSink = HeatSink(fuelMoisture, model);
 
-        print($"Rate of spread with no wind or slope: {propFluxNoWindSlope / heatSink}");
         return propFluxNoWindSlope / heatSink;
+    }
+
+    /// <summary>
+    /// Returns the rate of spread of fire in ft/min given upslope wind.
+    /// </summary>
+    /// <param name="point"></param>
+    /// <returns></returns>
+    private async Task<SpreadModel> RateOfSpreaUpslopeWind(Vector3 point)
+    {
+        FuelModel model = await FuelModelParameters(point);
+        WeatherModel weatherModel = await MidflameWindSpeed(point);
+
+        float r0 = await RateOfSpreadNoWindSlope(point); // zero-wind, zero-slope rate of spread
+        Wind currentWind = weatherModel.current;
+        float windFactor = await WindFactor(point, currentWind); // use current wind speed
+        float slopeFactor = await SlopeFactor(point);
+
+        SpreadModel spread =
+                    new SpreadModel(
+                        r0 * (1f + windFactor + slopeFactor),
+                        GetSlopeBearingInDegrees(GetHitInfo(point))
+                    );
+
+        return spread;
+    }
+
+    private async Task<SpreadModel> RateOfMaximumSpread(Vector3 point)
+    {
+        WeatherModel weatherModel = await MidflameWindSpeed(point);
+        Wind currentWind = weatherModel.current;
+
+        float r0 = await RateOfSpreadNoWindSlope(point);
+        float slopeBearing = GetSlopeBearingInDegrees(GetHitInfo(point));
+        float windBearing = currentWind.wind_deg;
+
+        /* for elapsed time t, the slope vector has magnitude Ds and direction 0.
+         * The wind vector has magnitude Dw in direction w from the upslope.
+         * the slope vector is (Ds, 0) and the wind vector is (Dwcosw, Dwsinw). 
+         * The resultant vector is then (Ds + Dwcosw, Dwsinw). 
+         * The magnitude of the head fire vector is Dh in direction a.
+         */
+        float Ds = r0 * await SlopeFactor(point);
+        float Dw = r0 * await WindFactor(point, currentWind);
+        float w = Mathf.Abs(slopeBearing - windBearing);
+
+        float X = Ds + (Dw * Mathf.Cos(DegreesToRadians(w)));
+        float Y = Dw * Mathf.Sin(DegreesToRadians(w));
+        float Dh = (float) Math.Pow(Math.Pow(X, 2f) + Math.Pow(Y, 2f), 0.5f);
+        
+        float a = Mathf.Asin(DegreesToRadians(Mathf.Abs(Y) / Dh));
+        // calculate a relative to North bearing
+        if (slopeBearing >= windBearing)
+        {
+            a = slopeBearing - a;
+        } else
+        {
+            a += slopeBearing;
+        }
+        float Rh = r0 + (Dh / 1f); // t = 1
+
+        return new SpreadModel(Rh, a);
     }
 
     #region Heat Sink
@@ -113,49 +186,36 @@ public class FireBehaviour : MonoBehaviour
     #region Heat Source
     /// <summary>
     /// </summary>
-    /// <param name="sigma"></param>
-    /// <param name="delta"></param>
-    /// <param name="w0"></param>
-    /// <param name="pP"></param>
-    /// <param name="sT"></param>
-    /// <param name="hi"></param>
-    /// <param name="Mf"></param>
-    /// <param name="Mx"></param>
-    /// <param name="Se"></param>
+    /// <param name="point"></param>
     /// <returns></returns>
-    private float HeatSource(FuelModel model, float Mf, float theta)
+    private async Task<float> HeatSource(Vector3 point)
     {
+        float Mf = await FuelMoistureContent(point);
+        FuelModel model = await FuelModelParameters(point);
+        float propFlux = await PropagatingFluxNoWindSlope(point);
+        Wind wind = (await MidflameWindSpeed(point)).current;
 
-        float propFlux = PropagatingFluxNoWindSlope(Mf, model);
-
-        float wind = 
-        return propFlux * (1 + SlopeFactor(theta, model) + WindFactor(wind, model));
+        return propFlux * (1f + await SlopeFactor(point) + await WindFactor(point, wind));
     }
 
     /// <summary>
     /// </summary>
-    /// <param name="sigma">surface-area-to-volume-ratio</param>
-    /// <param name="delta">fuel bed depth</param>
-    /// <param name="w0">oven-dry fuel load</param>
-    /// <param name="pP">particle density</param>
-    /// <param name="sT">total mineral content</param>
-    /// <param name="hi">heat content</param>
-    /// <param name="Mf">fuel moisture</param>
-    /// <param name="Mx">dead fuel moisture of extinction</param>
-    /// <param name="se">effective mineral content</param>
+    /// <param name="point"></param>
     /// <returns>no-wind, no-slope propagating flux</returns>
-    private float PropagatingFluxNoWindSlope(float Mf, FuelModel model)
+    private async Task<float> PropagatingFluxNoWindSlope(Vector3 point)
     {
-        return ReactionIntensity(Mf, model) * PropagatingFluxRatio(model);
+        FuelModel model = await FuelModelParameters(point);
+        return await ReactionIntensity(point) * PropagatingFluxRatio(model);
     }
 
     /// <summary>
     /// </summary>
-    /// <param name="Mf">fuel moisture</param>
-    /// <param name="model">fuel model</param>
+    /// <param name="point"></param>
     /// <returns></returns>
-    private float ReactionIntensity(float Mf, FuelModel model)
+    private async Task<float> ReactionIntensity(Vector3 point)
     {
+        float Mf = await FuelMoistureContent(point);
+        FuelModel model = await FuelModelParameters(point);
         float wn = NetFuelLoad(model.oven_dry_fuel_load);
         float nM = MoistureDampingCoefficient(Mf, model.dead_fuel_moisture_of_extinction);
 
@@ -269,13 +329,28 @@ public class FireBehaviour : MonoBehaviour
     #region Environmental
 
     /// <summary>
+    /// Rate of spread is modelled as constant for wind speeds
+    /// greater than the maximum reliable wind speed.
+    /// </summary>
+    /// <param name="iR">reaction intensity</param>
+    /// <returns></returns>
+    private float MaximumReliableWindSpeed(float iR)
+    {
+        return 0.9f * iR;
+    }
+
+    /// <summary>
     /// </summary>
     /// <param name="theta">slope angle</param>
     /// <param name="beta">packing ratio</param>
     /// <returns></returns>
-    private float SlopeFactor(float theta, FuelModel model)
+    private async Task<float> SlopeFactor(Vector3 point)
     {
-        return 5.27f * Mathf.Pow(model.packing_ratio, -0.3f) * Mathf.Pow(Mathf.Tan(theta), 2f);
+        FuelModel model = await FuelModelParameters(point);
+        RaycastHit hitInfo = GetHitInfo(point);
+        float theta = GetSlopeInDegrees(hitInfo);
+
+        return 5.27f * Mathf.Pow(model.packing_ratio, -0.3f) * Mathf.Pow(Mathf.Tan(DegreesToRadians(theta)), 2f);
     }
 
     /// <summary>
@@ -283,13 +358,21 @@ public class FireBehaviour : MonoBehaviour
     /// <param name="wind">midflame wind speed</param>
     /// <param name="model"></param>
     /// <returns></returns>
-    private float WindFactor(float wind, FuelModel model)
+    private async Task<float> WindFactor(Vector3 point, Wind wind)
     {
+        FuelModel model = await FuelModelParameters(point);
+        float fuelMoisture = await FuelMoistureContent(point);
+
         float C = 7.47f * Mathf.Exp(-0.133f * Mathf.Pow(model.characteristic_sav, 0.55f));
         float B = 0.025256f * Mathf.Pow(model.characteristic_sav, 0.54f);
         float E = 0.715f * Mathf.Exp(-3.59f * model.characteristic_sav * Mathf.Pow(10f, -4f));
+        float U =
+                Mathf.Min(
+                    MaximumReliableWindSpeed(await ReactionIntensity(point)),
+                    wind.wind_speed
+                );
 
-        return (float)(C * Mathf.Pow(wind, B) * Math.Pow(model.relative_packing_ratio, -E));
+        return (float)(C * Mathf.Pow(wind.wind_speed, B) * Math.Pow(model.relative_packing_ratio, -E));
     }
 
     float GetSlopeInDegrees(RaycastHit hitInfo)
@@ -308,6 +391,9 @@ public class FireBehaviour : MonoBehaviour
 
         return BearingBetweenInDegrees(North, upslopeFlat);
     }
+    #endregion
+
+    #region utils
 
     float BearingBetweenInDegrees(Vector3 a, Vector3 b)
     {
@@ -341,6 +427,16 @@ public class FireBehaviour : MonoBehaviour
         Vector2d latlon = Map.WorldToGeoPosition(new Vector3(point.x, 0, point.z));
         Vector3 newPoint = new Vector3(point.x, Map.QueryElevationInUnityUnitsAt(latlon), point.y);
         return newPoint;
+    }
+
+    private float DegreesToRadians(float deg)
+    {
+        return (Mathf.PI / 180f) * deg;
+    }
+
+    private float RadiansToDegrees(float rad)
+    {
+        return (180f / Mathf.PI) * rad;
     }
 
     #endregion
@@ -387,18 +483,17 @@ public class FireBehaviour : MonoBehaviour
             );
     }
 
-    async Task<float> MidflameWindSpeed(Vector3 point)
+    async Task<WeatherModel> MidflameWindSpeed(Vector3 point)
     {
         HttpResponseMessage response;
         Vector2d latlon = Map.WorldToGeoPosition(point);
 
         response = await client.GetAsync(string.Format(WindSpeedUrl, latlon.x, latlon.y));
         response.EnsureSuccessStatusCode();
-        return
-            float.Parse(
-                await response.Content.ReadAsStringAsync(),
-                CultureInfo.InvariantCulture.NumberFormat
-            );
+        string jsonString = await response.Content.ReadAsStringAsync();
+
+        var jObject = JsonUtility.FromJson<WeatherModel>(jsonString);
+        return jObject;
     }
     #endregion
 }

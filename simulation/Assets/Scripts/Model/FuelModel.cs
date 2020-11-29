@@ -18,6 +18,7 @@ public class FuelModel
     public float bulk_density;
     public float relative_packing_ratio;
     public float optimum_packing_ratio => 3.348f * Mathf.Pow(characteristic_sav, -0.8189f);
+    public float packing_ratio => relative_packing_ratio * optimum_packing_ratio;
     public const int heat_content = 8000; // constant
     public const float total_mineral_content = 0.0555f; // constant
     public const float effective_mineral_content = 0.01f; // constant

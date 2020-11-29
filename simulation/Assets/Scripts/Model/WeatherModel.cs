@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
+[Serializable]
 public class WeatherModel
 {
     public Wind current;
@@ -11,6 +14,7 @@ public class WeatherModel
     public string timezone_offset;
 }
 
+[Serializable]
 public class Wind
 {
     public float wind_deg;

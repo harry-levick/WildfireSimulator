@@ -79,17 +79,6 @@ public class CameraScriptBehaviour : MonoBehaviour
             RaycastHit hitInfo;
             if (Physics.Raycast(ray, out hitInfo, Mathf.Infinity))
             {
-                var latlon = GetLatLon(hitInfo);
-                var elevation = GetAltitudeInMeters(hitInfo);
-                var slope = GetSlopeInDegrees(hitInfo);
-                var heading = GetSlopeBearingInDegrees(hitInfo);
-
-                print($"Latitude: {latlon.x} , Longitude: {latlon.y}");
-                print($"Elevation: {elevation}");
-                print($"Slope degrees: {slope}");
-                print($"Upslope heading: {heading}");
-
-
                 FireBehaviour newFire = MapObject.AddComponent<FireBehaviour>();
                 newFire.IgnitionPoint = hitInfo.point;
                 newFire.Map = this.Map;
