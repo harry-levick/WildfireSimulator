@@ -1,9 +1,10 @@
 ﻿code,number,1-hr,10-hr,100-hr,live_herb,live_woody
-NB1,91,none,none,none,none,none
-NB2,92,none,none,none,none,none
-NB3,93,none,none,none,none,none
-NB8,98,none,none,none,none,none
-NB9,99,none,none,none,none,none
+NB0,0,0.0,0.0,0.0,0.0,0.0
+NB1,91,0.0,0.0,0.0,0.0,0.0
+NB2,92,0.0,0.0,0.0,0.0,0.0
+NB3,93,0.0,0.0,0.0,0.0,0.0
+NB8,98,0.0,0.0,0.0,0.0,0.0
+NB9,99,0.0,0.0,0.0,0.0,0.0
 GR1,101,0.1,0,0,0.3,0
 GR2,102,0.1,0,0,1,0
 GR3,103,0.1,0.4,0,1.5,0

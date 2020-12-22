@@ -54,6 +54,28 @@ class TestGetFuelModelParameters(unittest.TestCase):
         self.assertEqual(200, res.status_code)
         self.assertEqual(expected, json.loads(res.data.decode('utf-8')))
 
+    def test_valid_non_burnable_model_code(self) -> None:
+        """
+        Test the endpoint using a single
+        valid fuel model code.
+        :return:
+        """
+        model_code = 93
+
+        res = self.app.get('/model-parameters', query_string={"number": model_code})
+        self.assertEqual(200, res.status_code)
+
+    def test_zero_model_code(self) -> None:
+        """
+        Test the endpoint using a single
+        valid fuel model code.
+        :return:
+        """
+        model_code = 0
+
+        res = self.app.get('/model-parameters', query_string={"number": model_code})
+        self.assertEqual(200, res.status_code)
+
     def test_invalid_model_code(self) -> None:
         """
         Test the endpoint using a single

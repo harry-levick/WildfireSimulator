@@ -35,17 +35,14 @@ public class FireBehaviour : MonoBehaviour
 
     async void PrintStatus()
     {
-        var rateOfSpreadNoWindSlope = await RateOfSpreadNoWindSlope(IgnitionPoint);
-        var rateOfSpreadSameWindSlope = await RateOfSpreaUpslopeWind(IgnitionPoint);
+        //var rateOfSpreadNoWindSlope = await RateOfSpreadNoWindSlope(IgnitionPoint);
+        //var rateOfSpreadSameWindSlope = await RateOfSpreaUpslopeWind(IgnitionPoint);
         var rateOfMaximumSpread = await RateOfMaximumSpread(IgnitionPoint);
         WeatherModel weather = await MidflameWindSpeed(IgnitionPoint);
         var windFactor = await WindFactor(IgnitionPoint, weather.current);
         var slopeFactor = await SlopeFactor(IgnitionPoint);
         var slopeInDegrees = GetSlopeInDegrees(GetHitInfo(IgnitionPoint));
 
-        print($"Rate of spread no wind or slope: {rateOfSpreadNoWindSlope}");
-        print($"Rate of spread upslope wind: {rateOfSpreadSameWindSlope.spreadRate}");
-        print($"Bearing of upslope wind: {rateOfSpreadSameWindSlope.spreadBearing}");
         print($"Rate of maximum spread: {rateOfMaximumSpread.spreadRate}");
         print($"Bearing of maximum spread: {rateOfMaximumSpread.spreadBearing}");
         print($"Wind bearing: {weather.current.wind_deg}");
@@ -71,21 +68,11 @@ public class FireBehaviour : MonoBehaviour
         FuelModel model = await FuelModelParameters(point);
         float fuelMoisture = await FuelMoistureContent(point);
 
-        // Fuel Particle
-        int heatContent = FuelModel.heat_content;
-        float totalMineralContent = FuelModel.total_mineral_content;
-        float effectiveMineralContent = FuelModel.effective_mineral_content;
-        float particleDensity = FuelModel.particle_density;
-
-        // Fuel Array
-        float surfaceAreaToVolumeRatio = model.characteristic_sav;
-        float ovenDryFuelLoad = model.oven_dry_fuel_load;
-        float fuelBedDepth = model.fuel_bed_depth;
-        float deadFuelMoistureOfExtinction = model.dead_fuel_moisture_of_extinction;
-
         float propFluxNoWindSlope = await PropagatingFluxNoWindSlope(point);
 
         float heatSink = HeatSink(fuelMoisture, model);
+
+        if (propFluxNoWindSlope == 0 || heatSink == 0) { return 0; }
 
         return propFluxNoWindSlope / heatSink;
     }
@@ -136,8 +123,11 @@ public class FireBehaviour : MonoBehaviour
         float X = Ds + (Dw * Mathf.Cos(DegreesToRadians(w)));
         float Y = Dw * Mathf.Sin(DegreesToRadians(w));
         float Dh = (float) Math.Pow(Math.Pow(X, 2f) + Math.Pow(Y, 2f), 0.5f);
+
+        float a;
+        if (Y == 0f || Dh == 0f) { a = 0f; }
+        else { a = Mathf.Asin(DegreesToRadians(Mathf.Abs(Y) / Dh)); }
         
-        float a = Mathf.Asin(DegreesToRadians(Mathf.Abs(Y) / Dh));
         // calculate a relative to North bearing
         if (slopeBearing >= windBearing)
         {
@@ -232,7 +222,12 @@ public class FireBehaviour : MonoBehaviour
     /// <returns></returns>
     private float OptimumReactionVelocity(FuelModel model)
     {
-        float A = 133f * Mathf.Pow(model.characteristic_sav, -0.7913f);
+        float A;
+
+        if (model.characteristic_sav == 0f) { A = 0f; }
+        else { A = 133f * Mathf.Pow(model.characteristic_sav, -0.7913f); }
+
+        if (model.relative_packing_ratio == 0f) { return 0f; }
 
         return MaximumReactionVelocity(model.characteristic_sav) *
                 Mathf.Pow(model.relative_packing_ratio, A) *
@@ -245,6 +240,8 @@ public class FireBehaviour : MonoBehaviour
     /// <returns></returns>
     private float MaximumReactionVelocity(float sigma)
     {
+        if (sigma == 0f) { return 0f; }
+
         return Mathf.Pow(sigma, 1.5f) *
                 Mathf.Pow(495f + (0.0594f * Mathf.Pow(sigma, 1.5f)), -1f);
     }
@@ -301,6 +298,7 @@ public class FireBehaviour : MonoBehaviour
     /// <returns></returns>
     private float MeanPackingRatio(FuelModel model)
     {
+        if (model.fuel_bed_depth == 0 || model.oven_dry_fuel_load == 0) { return 0f; }
         return (1 / model.fuel_bed_depth) * (model.oven_dry_fuel_load / FuelModel.particle_density);
     }
 
@@ -341,8 +339,7 @@ public class FireBehaviour : MonoBehaviour
 
     /// <summary>
     /// </summary>
-    /// <param name="theta">slope angle</param>
-    /// <param name="beta">packing ratio</param>
+    /// <param name="point">the point in space to find the slope factor</param>
     /// <returns></returns>
     private async Task<float> SlopeFactor(Vector3 point)
     {
@@ -350,7 +347,15 @@ public class FireBehaviour : MonoBehaviour
         RaycastHit hitInfo = GetHitInfo(point);
         float theta = GetSlopeInDegrees(hitInfo);
 
-        return 5.27f * Mathf.Pow(model.packing_ratio, -0.3f) * Mathf.Pow(Mathf.Tan(DegreesToRadians(theta)), 2f);
+        if (model.packing_ratio == 0) { return 0f; }
+        var slopeFactor = 5.27f * Mathf.Pow(model.packing_ratio, -0.3f) * Mathf.Pow(Mathf.Tan(DegreesToRadians(theta)), 2f);
+
+        if (float.IsNaN(slopeFactor))
+        {
+            print("");
+        }
+
+        return slopeFactor;
     }
 
     /// <summary>
@@ -361,6 +366,9 @@ public class FireBehaviour : MonoBehaviour
     private async Task<float> WindFactor(Vector3 point, Wind wind)
     {
         FuelModel model = await FuelModelParameters(point);
+
+        if (model.relative_packing_ratio == 0f) { return 0f; }
+
         float fuelMoisture = await FuelMoistureContent(point);
 
         float C = 7.47f * Mathf.Exp(-0.133f * Mathf.Pow(model.characteristic_sav, 0.55f));
@@ -372,7 +380,8 @@ public class FireBehaviour : MonoBehaviour
                     wind.wind_speed
                 );
 
-        return (float)(C * Mathf.Pow(wind.wind_speed, B) * Math.Pow(model.relative_packing_ratio, -E));
+        var windFactor = (float)(C * Mathf.Pow(wind.wind_speed, B) * Math.Pow(model.relative_packing_ratio, -E));
+        return windFactor;
     }
 
     float GetSlopeInDegrees(RaycastHit hitInfo)
@@ -459,14 +468,19 @@ public class FireBehaviour : MonoBehaviour
         HttpResponseMessage response;
         Vector2d latlon = Map.WorldToGeoPosition(point);
 
-        int modelNumber = await FuelModelNumber(point);
-        response = await client.GetAsync(string.Format(ModelParametersUrl, modelNumber));
-        response.EnsureSuccessStatusCode();
+        try
+        {
+            int modelNumber = await FuelModelNumber(point);
+            response = await client.GetAsync(string.Format(ModelParametersUrl, modelNumber));
+            response.EnsureSuccessStatusCode();
 
-        return
-            JsonUtility.FromJson<FuelModel>(
-                        await response.Content.ReadAsStringAsync()
-            );
+            return JsonUtility.FromJson<FuelModel>(await response.Content.ReadAsStringAsync());
+        } catch (Exception e)
+        {
+            print("");
+            return new FuelModel();
+        }
+
     }
 
     async Task<float> FuelMoistureContent(Vector3 point)
