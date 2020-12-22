@@ -1,6 +1,6 @@
 import json
 import unittest
-from src.weather import app
+from data.src.weather import app
 
 
 class TestGetWeather(unittest.TestCase):

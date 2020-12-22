@@ -4,7 +4,7 @@ import pandas as pd
 import rasterio as rio
 from flask import Flask, Response
 from flask import jsonify, request
-from src.common.constants import *
+from data.src.common.constants import *
 
 app = Flask(__name__)
 
@@ -22,35 +22,24 @@ model_classes_sav_ratio = pd.read_csv(scott_burgan_class_sav_ratio)
 @app.route('/model-number', methods=['GET'])
 def get_model_code() -> Response:
     """
-    :body Takes a Json list body that contains
-            a single GeoJson object for each coordinate
-    :return: a Json array containing the model number for
-            each coordinate given
+    :body Takes a lat and lon
+    :return: the model number for the coordinate given
     """
-    if not request.json:
-        return Response(status=400)
-
-    output_numbers = []
     try:
-        for feature in request.json:
-            lat, long = feature['geometry']['coordinates']
+        lat = float(request.args['lat'])
+        lon = float(request.args['lon'])
 
-            try:
-                [value] = raster_dataset.sample([(long, lat)])
-                number = value.item()
-            except ValueError:
-                return Response(status=500)
+        [value] = raster_dataset.sample([(lon, lat)])
 
-            # coordinate given out of bounds
-            if int(number) not in model_classes['number'].values:
-                raise ValueError
+        number = int(value.item())
+        # coordinate given out of bounds
+        if int(number) not in model_classes['number'].values:
+            raise ValueError
 
-            output_numbers.append(value.item())
+        return jsonify(number), 200
 
     except (KeyError, ValueError): # body not correctly formatted
         return Response(status=400)
-
-    return jsonify(output_numbers), 200
 
 
 @app.route('/model-parameters', methods=['GET'])
@@ -78,14 +67,14 @@ def get_model_parameters() -> Response:
                     .values\
                     .tolist()[0]
     fuel_load = list(map(float, fuel_load))
-    parameters["fuel load"] = fuel_load
+    parameters["fuel_load"] = fuel_load
 
     sav_ratio = model_classes_sav_ratio.loc[model_classes_sav_ratio[parameter_name] == model_number]\
                     .drop(labels=['code', 'number'], axis=1)\
                     .values\
                     .tolist()[0]
     sav_ratio = list(map(float, sav_ratio))
-    parameters["sav ratio"] = sav_ratio
+    parameters["sav_ratio"] = sav_ratio
 
     return jsonify(parameters), 200
 

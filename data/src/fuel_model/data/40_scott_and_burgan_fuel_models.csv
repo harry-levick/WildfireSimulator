@@ -1,9 +1,10 @@
-﻿code,number,name,description,type,fuel bed depth,dead fuel moisture of extinction,characteristic sav,bulk density,relative packing ratio
-NB1,91,Urban,Non burnable.,none,0,0,0,0,0
-NB2,92,Snow/Ice,Non burnable.,none,0,0,0,0,0
-NB3,93,Agriculture,Non burnable.,none,0,0,0,0,0
-NB8,98,Water,Non burnable.,none,0,0,0,0,0
-NB9,99,Barren,Non burnable.,none,0,0,0,0,0
+﻿code,number,name,description,type,fuel_bed_depth,dead_fuel_moisture_of_extinction,characteristic_sav,bulk_density,relative_packing_ratio
+NB0,0,Non Burnable zero,Non burnable,none,0.0,0.0,0.0,0.0,0.0
+NB1,91,Urban,Non burnable.,none,0.0,0.0,0.0,0.0,0.0
+NB2,92,Snow/Ice,Non burnable.,none,0.0,0.0,0.0,0.0,0.0
+NB3,93,Agriculture,Non burnable.,none,0.0,0.0,0.0,0.0,0.0
+NB8,98,Water,Non burnable.,none,0.0,0.0,0.0,0.0,0.0
+NB9,99,Barren,Non burnable.,none,0.0,0.0,0.0,0.0,0.0
 GR1,101,"Short, sparse, dry climate grass","Short, sparse dry climate grass is short, naturally or heavy grazing, predicted rate of fire spread and flame length low.",Dynamic,0.4,0.15,2054,0.05,0.22
 GR2,102,"Low load, dry climate grass","Low load, dry climate grass primarily grass with some small amounts of fine, dead fuel, any shrubs do not affect fire behavior.",Dynamic,1,0.15,1820,0.05,0.22
 GR3,103,"Low load, very coarse, humid climate grass","Low load, very coarse, humid climate grass continuous, coarse humid climate grass, any shrubs do not affect fire behavior.",Dynamic,2,0.3,1290,0.05,0.15

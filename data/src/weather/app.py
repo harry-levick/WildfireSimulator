@@ -1,5 +1,5 @@
 import requests
-from src.common.constants import *
+from data.src.common.constants import *
 from flask import Flask, Response
 from flask import jsonify, request
 
