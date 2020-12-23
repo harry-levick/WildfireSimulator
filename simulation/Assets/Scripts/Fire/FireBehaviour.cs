@@ -384,6 +384,19 @@ public class FireBehaviour : MonoBehaviour
         return windFactor;
     }
 
+    private async Task<float> EffectiveWindFactor(Vector3 point)
+    {
+        float windFactor = await WindFactor(point);
+        FuelModel model = await FuelModelParameters(point);
+
+        if (model.relative_packing_ratio == 0f || windFactor == 0f) { return 0f; }
+
+        float B = 0.025256f * Mathf.Pow(model.characteristic_sav, 0.54f);
+        float E = 0.715f * Mathf.Exp(-3.59f * model.characteristic_sav * Mathf.Pow(10f, -4f));
+
+        return Mathf.Pow(windFactor * Mathf.Pow(model.relative_packing_ratio, E), -B);
+    }
+
     float GetSlopeInDegrees(RaycastHit hitInfo)
     {
         Vector3 normal = hitInfo.normal;
