@@ -21,6 +21,14 @@ public class FireBehaviour : MonoBehaviour
     private const string WindSpeedUrl =
         "http://127.0.0.1:6000/weather-data?lat={0}&lon={1}";
 
+    private float LengthWidthRatio;
+    private float Eccentricity;
+    private float HeadingFireRateOfSpread;
+    private float HeadingFireBearing;
+    private float BackingFireRateOfSpread;
+    private float BackingFireBearing;
+    private float FlankingSpreadDistance;
+    private int TimeCount = 1;
 
     private void Awake()
     {
@@ -30,32 +38,48 @@ public class FireBehaviour : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        PrintStatus();
-    }
-
-    async void PrintStatus()
-    {
-        //var rateOfSpreadNoWindSlope = await RateOfSpreadNoWindSlope(IgnitionPoint);
-        //var rateOfSpreadSameWindSlope = await RateOfSpreaUpslopeWind(IgnitionPoint);
-        var rateOfMaximumSpread = await RateOfMaximumSpread(IgnitionPoint);
-        WeatherModel weather = await MidflameWindSpeed(IgnitionPoint);
-        var windFactor = await WindFactor(IgnitionPoint, weather.current);
-        var slopeFactor = await SlopeFactor(IgnitionPoint);
-        var slopeInDegrees = GetSlopeInDegrees(GetHitInfo(IgnitionPoint));
-
-        print($"Rate of maximum spread: {rateOfMaximumSpread.spreadRate}");
-        print($"Bearing of maximum spread: {rateOfMaximumSpread.spreadBearing}");
-        print($"Wind bearing: {weather.current.wind_deg}");
-        print($"Wind speed: {weather.current.wind_speed}");
-        print($"Wind factor: {windFactor}");
-        print($"Slope in degrees: {slopeInDegrees}");
-        print($"Slope bearing: {GetSlopeBearingInDegrees(GetHitInfo(IgnitionPoint))}");
-        print($"Slope factor: {slopeFactor}");
+        InitializeSpread();
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
+    }
+
+    private void FixedUpdate()
+    {
+        CalculateSpread();
+    }
+
+    private async void InitializeSpread()
+    {
+        LengthWidthRatio = 1f + (0.25f * await EffectiveWindFactor(IgnitionPoint));
+        Eccentricity = Mathf.Pow((Mathf.Pow(LengthWidthRatio, 2f) - 1f), 0.5f) / LengthWidthRatio;
+        var maxSpread = await RateOfMaximumSpread(IgnitionPoint);
+        HeadingFireRateOfSpread = maxSpread.spreadRate;
+        HeadingFireBearing = maxSpread.spreadBearing;
+        BackingFireRateOfSpread = HeadingFireRateOfSpread * ((1 - Eccentricity) / (1 + Eccentricity));
+
+        if (HeadingFireBearing >= 180) { BackingFireBearing = HeadingFireBearing - 180f; }
+        else { BackingFireBearing = HeadingFireBearing + 180f; }
+    }
+
+    private void CalculateSpread()
+    {
+        float DH = HeadingFireRateOfSpread * TimeCount;
+        float DB = BackingFireRateOfSpread * TimeCount;
+
+        Vector2 reached = new Vector2(
+                            IgnitionPoint.x + (DH * Mathf.Cos(DegreesToRadians(HeadingFireBearing))),
+                            IgnitionPoint.z + (DH * Mathf.Sin(DegreesToRadians(HeadingFireBearing)))
+                            );
+
+        TimeCount += 1;
+
+        
+        Debug.DrawRay(new Vector3(reached.x, IgnitionPoint.y, reached.y), Vector3.up, Color.green, 20f);
+
+        print($"Reached: {reached}");
     }
 
     /// <summary>
@@ -85,11 +109,9 @@ public class FireBehaviour : MonoBehaviour
     private async Task<SpreadModel> RateOfSpreaUpslopeWind(Vector3 point)
     {
         FuelModel model = await FuelModelParameters(point);
-        WeatherModel weatherModel = await MidflameWindSpeed(point);
-
+     
         float r0 = await RateOfSpreadNoWindSlope(point); // zero-wind, zero-slope rate of spread
-        Wind currentWind = weatherModel.current;
-        float windFactor = await WindFactor(point, currentWind); // use current wind speed
+        float windFactor = await WindFactor(point); // use current wind speed
         float slopeFactor = await SlopeFactor(point);
 
         SpreadModel spread =
@@ -117,7 +139,7 @@ public class FireBehaviour : MonoBehaviour
          * The magnitude of the head fire vector is Dh in direction a.
          */
         float Ds = r0 * await SlopeFactor(point);
-        float Dw = r0 * await WindFactor(point, currentWind);
+        float Dw = r0 * await WindFactor(point);
         float w = Mathf.Abs(slopeBearing - windBearing);
 
         float X = Ds + (Dw * Mathf.Cos(DegreesToRadians(w)));
@@ -185,7 +207,7 @@ public class FireBehaviour : MonoBehaviour
         float propFlux = await PropagatingFluxNoWindSlope(point);
         Wind wind = (await MidflameWindSpeed(point)).current;
 
-        return propFlux * (1f + await SlopeFactor(point) + await WindFactor(point, wind));
+        return propFlux * (1f + await SlopeFactor(point) + await WindFactor(point));
     }
 
     /// <summary>
@@ -360,11 +382,12 @@ public class FireBehaviour : MonoBehaviour
 
     /// <summary>
     /// </summary>
-    /// <param name="wind">midflame wind speed</param>
     /// <param name="model"></param>
     /// <returns></returns>
-    private async Task<float> WindFactor(Vector3 point, Wind wind)
+    private async Task<float> WindFactor(Vector3 point)
     {
+        WeatherModel weatherModel = await MidflameWindSpeed(point);
+        float currentWindSpeed = weatherModel.current.wind_speed;
         FuelModel model = await FuelModelParameters(point);
 
         if (model.relative_packing_ratio == 0f) { return 0f; }
@@ -377,10 +400,10 @@ public class FireBehaviour : MonoBehaviour
         float U =
                 Mathf.Min(
                     MaximumReliableWindSpeed(await ReactionIntensity(point)),
-                    wind.wind_speed
+                    currentWindSpeed
                 );
 
-        var windFactor = (float)(C * Mathf.Pow(wind.wind_speed, B) * Math.Pow(model.relative_packing_ratio, -E));
+        var windFactor = (float)(C * Mathf.Pow(currentWindSpeed, B) * Mathf.Pow(model.relative_packing_ratio, -E));
         return windFactor;
     }
 
