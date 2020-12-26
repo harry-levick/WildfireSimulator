@@ -21,6 +21,7 @@ public class FireBehaviour : MonoBehaviour
     private const string WindSpeedUrl =
         "http://127.0.0.1:6000/weather-data?lat={0}&lon={1}";
 
+    private bool Active = false;
     private float LengthWidthRatio;
     private float Eccentricity;
     private float HeadingFireRateOfSpread;
@@ -28,26 +29,38 @@ public class FireBehaviour : MonoBehaviour
     private float BackingFireRateOfSpread;
     private float BackingFireBearing;
     private float FlankingSpreadDistance;
-    private int TimeCount = 1;
+    private ulong TimeCount = 1;
+    private FireController _controller;
+
+    private Vector2 headingReached = new Vector2();
 
     private void Awake()
     {
-        Map = UnityEngine.Object.FindObjectOfType<AbstractMap>();
+        Map = FindObjectOfType<AbstractMap>();
     }
 
-    // Use this for initialization
-    void Start()
+    public void Activate(Vector3 ignitionPoint, ref FireController controller)
     {
-        InitializeSpread();
+        IgnitionPoint = ignitionPoint;
+        _controller = controller;
+        var maxSpread = RateOfMaximumSpread(IgnitionPoint).GetAwaiter().GetResult();
+        HeadingFireRateOfSpread = maxSpread.spreadRate;
+        HeadingFireBearing = DegreesToRadians(maxSpread.spreadBearing);
+        print($"Ignition point: {IgnitionPoint}");
+        Debug.DrawRay(IgnitionPoint, Vector3.up * 20, Color.green, 1000f);
+
+        Active = true;
     }
 
     // Update is called once per frame
     private void Update()
     {
+        if (!Active) return;
     }
 
     private void FixedUpdate()
     {
+        if (!Active) return;
         CalculateSpread();
     }
 
@@ -55,31 +68,49 @@ public class FireBehaviour : MonoBehaviour
     {
         LengthWidthRatio = 1f + (0.25f * await EffectiveWindFactor(IgnitionPoint));
         Eccentricity = Mathf.Pow((Mathf.Pow(LengthWidthRatio, 2f) - 1f), 0.5f) / LengthWidthRatio;
-        var maxSpread = await RateOfMaximumSpread(IgnitionPoint);
-        HeadingFireRateOfSpread = maxSpread.spreadRate;
-        HeadingFireBearing = maxSpread.spreadBearing;
+        //var maxSpread = await RateOfMaximumSpread(IgnitionPoint);
+        //HeadingFireRateOfSpread = maxSpread.spreadRate;
+        //HeadingFireBearing = maxSpread.spreadBearing;
         BackingFireRateOfSpread = HeadingFireRateOfSpread * ((1 - Eccentricity) / (1 + Eccentricity));
 
         if (HeadingFireBearing >= 180) { BackingFireBearing = HeadingFireBearing - 180f; }
         else { BackingFireBearing = HeadingFireBearing + 180f; }
+
+        print($"Ignition point: {IgnitionPoint}");
+        Debug.DrawRay(new Vector3(IgnitionPoint.x, IgnitionPoint.y, IgnitionPoint.y), Vector3.up, Color.green, 1000f);
     }
 
     private void CalculateSpread()
     {
         float DH = HeadingFireRateOfSpread * TimeCount;
-        float DB = BackingFireRateOfSpread * TimeCount;
-
-        Vector2 reached = new Vector2(
-                            IgnitionPoint.x + (DH * Mathf.Cos(DegreesToRadians(HeadingFireBearing))),
-                            IgnitionPoint.z + (DH * Mathf.Sin(DegreesToRadians(HeadingFireBearing)))
+      
+        Vector2 headingPos = new Vector2(
+                            IgnitionPoint.x + (DH * Mathf.Cos(HeadingFireBearing)),
+                            IgnitionPoint.z + (DH * Mathf.Sin(HeadingFireBearing))
                             );
 
-        TimeCount += 1;
+        if (Vector2.Distance(headingPos, headingReached) > 0.1f)
+        {
+            Debug.DrawRay(new Vector3(headingPos.x, IgnitionPoint.y, headingPos.y), Vector3.up * 10, Color.red, 1000f);
+            headingReached = headingPos;
+            print("------------------------------");
+            print($"Heading reached: {headingPos}");
+            print($"DH: {DH}");
+            print($"ROS: {HeadingFireRateOfSpread}");
+            print($"bearing: {HeadingFireBearing}");
+            print($"Time Count: {TimeCount}");
+        }
 
-        
-        Debug.DrawRay(new Vector3(reached.x, IgnitionPoint.y, reached.y), Vector3.up, Color.green, 20f);
+        //float DB = BackingFireRateOfSpread * TimeCount;
+        //var backingBearingRad = DegreesToRadians(BackingFireBearing);
+        //Vector2 backingReached = new Vector2(
+        //                    IgnitionPoint.x + (DB * Mathf.Cos(backingBearingRad)),
+        //                    IgnitionPoint.z + (DH * Mathf.Sin(backingBearingRad))
+        //                    );
+        //Debug.DrawRay(new Vector3(backingReached.x, IgnitionPoint.y, backingReached.y), Vector3.up, Color.blue, 20f);
+        //print($"Backing reached: {backingReached}");
 
-        print($"Reached: {reached}");
+        TimeCount += _controller.increment * 60;
     }
 
     /// <summary>
@@ -493,7 +524,7 @@ public class FireBehaviour : MonoBehaviour
 
         Vector2d latlon = Map.WorldToGeoPosition(point);
 
-        response = await client.GetAsync(string.Format(ModelNumberUrl, latlon.x, latlon.y));
+        response = client.GetAsync(string.Format(ModelNumberUrl, latlon.x, latlon.y)).Result;
         response.EnsureSuccessStatusCode();
         string modelNumber = await response.Content.ReadAsStringAsync();
         return Int32.Parse(modelNumber);
@@ -507,7 +538,7 @@ public class FireBehaviour : MonoBehaviour
         try
         {
             int modelNumber = await FuelModelNumber(point);
-            response = await client.GetAsync(string.Format(ModelParametersUrl, modelNumber));
+            response = client.GetAsync(string.Format(ModelParametersUrl, modelNumber)).Result;
             response.EnsureSuccessStatusCode();
 
             return JsonUtility.FromJson<FuelModel>(await response.Content.ReadAsStringAsync());
@@ -524,7 +555,7 @@ public class FireBehaviour : MonoBehaviour
         HttpResponseMessage response;
         Vector2d latlon = Map.WorldToGeoPosition(point);
 
-        response = await client.GetAsync(string.Format(MoistureUrl, latlon.x, latlon.y));
+        response = client.GetAsync(string.Format(MoistureUrl, latlon.x, latlon.y)).Result;
         response.EnsureSuccessStatusCode();
         return
             float.Parse(
@@ -538,7 +569,7 @@ public class FireBehaviour : MonoBehaviour
         HttpResponseMessage response;
         Vector2d latlon = Map.WorldToGeoPosition(point);
 
-        response = await client.GetAsync(string.Format(WindSpeedUrl, latlon.x, latlon.y));
+        response = client.GetAsync(string.Format(WindSpeedUrl, latlon.x, latlon.y)).Result;
         response.EnsureSuccessStatusCode();
         string jsonString = await response.Content.ReadAsStringAsync();
 
