@@ -5,6 +5,6 @@ using UnityEngine;
 public class FireController
 {
     [SerializeField]
-    [Range(0, 100000)]
+    [Range(0, 100)]
     public ulong increment = 1;
 }
