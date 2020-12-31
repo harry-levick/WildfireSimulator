@@ -2,10 +2,10 @@
 
 public class SpreadModel
 {
-    public float spreadRate; // the rate of spread in ft/min
-    public float spreadBearing; // the direction of spread as a bearing.
+    public double spreadRate; // the rate of spread in ft/min
+    public double spreadBearing; // the direction of spread as a bearing.
 
-    public SpreadModel(float rate, float bearing)
+    public SpreadModel(double rate, double bearing)
     {
         spreadRate = rate;
         spreadBearing = bearing;

@@ -10,3 +10,5 @@ WGS84 = "EPSG:4326" # WGS84 latitude-longitude CRS
 # Weather api
 WEATHER_API = "https://api.openweathermap.org/data/2.5/onecall"
 WEATHER_API_KEY = "aceb15f37444868d75c58b9ef6033fc8"
+
+METRES_PER_SECOND_TO_FEET_PER_MINUTE_CONVERSION = 196.85

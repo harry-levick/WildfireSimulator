@@ -4,14 +4,13 @@ using UnityEngine;
 
 public class CameraScriptBehaviour : MonoBehaviour
 {
-    [SerializeField]
-    float speed = 0.5f;
-    [SerializeField]
-    float sensitivity = 0.1f;
-    bool isMousePressed = false;
-    Vector3 North = new Vector3(0, 0, 1);
-    AbstractMap Map;
-    GameObject MapObject;
+    [SerializeField] private float _speed = 0.5f;
+    [SerializeField] private float _sensitivity = 0.1f;
+    [SerializeField] private FireController _controller = new FireController();
+    private bool _isMousePressed = false;
+    private Vector3 _north = new Vector3(0, 0, 1);
+    private AbstractMap Map;
+    private GameObject MapObject;
     Camera Cam;
     Vector3 AnchorPoint;
     Quaternion AnchorRot;
@@ -19,7 +18,7 @@ public class CameraScriptBehaviour : MonoBehaviour
     private void Awake()
     {
         Cam = GetComponent<Camera>();
-        Map = UnityEngine.Object.FindObjectOfType<AbstractMap>();
+        Map = FindObjectOfType<AbstractMap>();
         MapObject = GameObject.Find("Map");
     }
 
@@ -32,17 +31,17 @@ public class CameraScriptBehaviour : MonoBehaviour
     {
         Vector3 move = Vector3.zero;
         if (Input.GetKey(KeyCode.W))
-            move += Vector3.forward * speed;
+            move += Vector3.forward * _speed;
         if (Input.GetKey(KeyCode.S))
-            move -= Vector3.forward * speed;
+            move -= Vector3.forward * _speed;
         if (Input.GetKey(KeyCode.D))
-            move += Vector3.right * speed;
+            move += Vector3.right * _speed;
         if (Input.GetKey(KeyCode.A))
-            move -= Vector3.right * speed;
+            move -= Vector3.right * _speed;
         if (Input.GetKey(KeyCode.E))
-            move += Vector3.up * speed;
+            move += Vector3.up * _speed;
         if (Input.GetKey(KeyCode.Q))
-            move -= Vector3.up * speed;
+            move -= Vector3.up * _speed;
         transform.Translate(move);
 
         if (Input.GetMouseButtonDown(1))
@@ -54,7 +53,7 @@ public class CameraScriptBehaviour : MonoBehaviour
         {
             Quaternion rot = AnchorRot;
             Vector3 dif = AnchorPoint - new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
-            rot.eulerAngles += dif * sensitivity;
+            rot.eulerAngles += dif * _sensitivity;
             transform.rotation = rot;
         }
     }
@@ -65,14 +64,14 @@ public class CameraScriptBehaviour : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            isMousePressed = true;
+            _isMousePressed = true;
         }
         else if (Input.GetMouseButtonUp(0))
         {
-            isMousePressed = false;
+            _isMousePressed = false;
         }
 
-        if (isMousePressed)
+        if (_isMousePressed)
         {
 
             Ray ray = Cam.ScreenPointToRay(Input.mousePosition);
@@ -80,8 +79,7 @@ public class CameraScriptBehaviour : MonoBehaviour
             if (Physics.Raycast(ray, out hitInfo, Mathf.Infinity))
             {
                 FireBehaviour newFire = MapObject.AddComponent<FireBehaviour>();
-                newFire.IgnitionPoint = hitInfo.point;
-                newFire.Map = this.Map;
+                newFire.Activate(hitInfo.point, ref _controller);
             }
 
         }
@@ -126,7 +124,7 @@ public class CameraScriptBehaviour : MonoBehaviour
         Vector3 upslope = Vector3.Cross(normal, left);
         Vector3 upslopeFlat = new Vector3(upslope.x, 0, upslope.z).normalized;
 
-        return BearingBetweenInDegrees(North, upslopeFlat);
+        return BearingBetweenInDegrees(_north, upslopeFlat);
     }
 
 }
