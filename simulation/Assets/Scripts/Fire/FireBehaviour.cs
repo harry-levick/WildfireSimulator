@@ -1,9 +1,10 @@
-﻿using Mapbox.Utils;
-using Mapbox.Unity.Map;
-using System;
-using System.Net.Http;
+﻿using System;
+using System.Collections;
 using System.Globalization;
+using System.Net.Http;
 using System.Threading.Tasks;
+using Mapbox.Unity.Map;
+using Mapbox.Utils;
 using UnityEngine;
 
 public class FireBehaviour : MonoBehaviour
@@ -22,17 +23,17 @@ public class FireBehaviour : MonoBehaviour
         "http://127.0.0.1:6000/weather-data?lat={0}&lon={1}";
 
     private bool Active = false;
-    private float LengthWidthRatio;
-    private float Eccentricity;
-    private float HeadingFireRateOfSpread;
-    private float HeadingFireBearing;
-    private float BackingFireRateOfSpread;
-    private float BackingFireBearing;
-    private float FlankingSpreadDistance;
-    private ulong TimeCount = 1;
     private FireController _controller;
+    private ulong TimeCount = 1;
 
-    private Vector2 headingReached = new Vector2();
+    private double LengthWidthRatio;
+    private double Eccentricity;
+    private double HeadingFireRateOfSpread;
+    private double HeadingFireBearing;
+    private double BackingFireRateOfSpread;
+    private double BackingFireBearing;
+
+    private Hashtable directions = new Hashtable();
 
     private void Awake()
     {
@@ -43,11 +44,34 @@ public class FireBehaviour : MonoBehaviour
     {
         IgnitionPoint = ignitionPoint;
         _controller = controller;
-        var maxSpread = RateOfMaximumSpread(IgnitionPoint).GetAwaiter().GetResult();
+
+        var maxSpread = RateOfMaximumSpreadInMetres(IgnitionPoint).GetAwaiter().GetResult();
         HeadingFireRateOfSpread = maxSpread.spreadRate;
-        HeadingFireBearing = DegreesToRadians(maxSpread.spreadBearing);
-        print($"Ignition point: {IgnitionPoint}");
-        Debug.DrawRay(IgnitionPoint, Vector3.up * 20, Color.green, 1000f);
+        HeadingFireBearing = maxSpread.spreadBearing;
+
+        if (HeadingFireRateOfSpread == 0.0)
+        {
+            print("Spread rate: 0");
+            return;
+        }
+
+        LengthWidthRatio = 1 + (0.25 * EffectiveMidflameWindSpeed(IgnitionPoint).GetAwaiter().GetResult());
+        Eccentricity = Math.Pow((Math.Pow(LengthWidthRatio, 2.0) - 1.0), 0.5) / LengthWidthRatio;
+
+        BackingFireRateOfSpread = HeadingFireRateOfSpread * ((1 - Eccentricity) / (1 + Eccentricity));
+        BackingFireBearing = ReverseBearing(HeadingFireBearing);
+
+        for (int angle = 0; angle <= 170; angle += 10)
+        {
+            if (angle == 0) { directions.Add(angle, HeadingFireRateOfSpread); }
+            else
+            {
+                var spreadRate = HeadingFireRateOfSpread * ((1 - Eccentricity) / (1 - (Eccentricity * Math.Cos(DegreesToRadians(angle)))));
+                directions.Add(angle, spreadRate);
+            }
+        }
+
+        Debug.DrawRay(IgnitionPoint, Vector3.up * 200, Color.green, 1000f);
 
         Active = true;
     }
@@ -64,51 +88,45 @@ public class FireBehaviour : MonoBehaviour
         CalculateSpread();
     }
 
-    private async void InitializeSpread()
-    {
-        LengthWidthRatio = 1f + (0.25f * await EffectiveWindFactor(IgnitionPoint));
-        Eccentricity = Mathf.Pow((Mathf.Pow(LengthWidthRatio, 2f) - 1f), 0.5f) / LengthWidthRatio;
-        //var maxSpread = await RateOfMaximumSpread(IgnitionPoint);
-        //HeadingFireRateOfSpread = maxSpread.spreadRate;
-        //HeadingFireBearing = maxSpread.spreadBearing;
-        BackingFireRateOfSpread = HeadingFireRateOfSpread * ((1 - Eccentricity) / (1 + Eccentricity));
-
-        if (HeadingFireBearing >= 180) { BackingFireBearing = HeadingFireBearing - 180f; }
-        else { BackingFireBearing = HeadingFireBearing + 180f; }
-
-        print($"Ignition point: {IgnitionPoint}");
-        Debug.DrawRay(new Vector3(IgnitionPoint.x, IgnitionPoint.y, IgnitionPoint.y), Vector3.up, Color.green, 1000f);
-    }
-
     private void CalculateSpread()
     {
-        float DH = HeadingFireRateOfSpread * TimeCount;
-      
-        Vector2 headingPos = new Vector2(
-                            IgnitionPoint.x + (DH * Mathf.Cos(HeadingFireBearing)),
-                            IgnitionPoint.z + (DH * Mathf.Sin(HeadingFireBearing))
-                            );
-
-        if (Vector2.Distance(headingPos, headingReached) > 0.1f)
+        print($"Hours Passed: {TimeCount}");
+        // loop through each direction (360 degrees) from the ignition point
+        foreach(DictionaryEntry entry in directions)
         {
-            Debug.DrawRay(new Vector3(headingPos.x, IgnitionPoint.y, headingPos.y), Vector3.up * 10, Color.red, 1000f);
-            headingReached = headingPos;
-            print("------------------------------");
-            print($"Heading reached: {headingPos}");
-            print($"DH: {DH}");
-            print($"ROS: {HeadingFireRateOfSpread}");
-            print($"bearing: {HeadingFireBearing}");
-            print($"Time Count: {TimeCount}");
+            double clockwiseAngle = ((int)entry.Key) + HeadingFireBearing;
+            double anticlockwiseAngle = HeadingFireBearing - ((int)entry.Key);
+
+            double spreadRate = (double) entry.Value;
+
+            if (clockwiseAngle >= 360.0) { clockwiseAngle -= 360.0; }
+            clockwiseAngle = DegreesToRadians(clockwiseAngle);
+            if (anticlockwiseAngle < 0.0) { anticlockwiseAngle += 360.0; }
+            anticlockwiseAngle = DegreesToRadians(anticlockwiseAngle);
+
+            double DH_angle = spreadRate * TimeCount;
+            Vector2 clockwisePos = new Vector2(
+                                (float)(IgnitionPoint.x + (DH_angle * Math.Sin(clockwiseAngle))),
+                                (float)(IgnitionPoint.z + (DH_angle * Math.Cos(clockwiseAngle)))
+                                );
+
+            Debug.DrawRay(new Vector3(clockwisePos.x, IgnitionPoint.y, clockwisePos.y), Vector3.up * 100, Color.red, 1000f);
+
+            Vector2 anticlockwisePos = new Vector2(
+                                (float)(IgnitionPoint.x + (DH_angle * Math.Sin(anticlockwiseAngle))),
+                                (float)(IgnitionPoint.z + (DH_angle * Math.Cos(anticlockwiseAngle)))
+                                );
+
+            Debug.DrawRay(new Vector3(anticlockwisePos.x, IgnitionPoint.y, anticlockwisePos.y), Vector3.up * 100, Color.red, 1000f);
         }
 
-        //float DB = BackingFireRateOfSpread * TimeCount;
-        //var backingBearingRad = DegreesToRadians(BackingFireBearing);
-        //Vector2 backingReached = new Vector2(
-        //                    IgnitionPoint.x + (DB * Mathf.Cos(backingBearingRad)),
-        //                    IgnitionPoint.z + (DH * Mathf.Sin(backingBearingRad))
-        //                    );
-        //Debug.DrawRay(new Vector3(backingReached.x, IgnitionPoint.y, backingReached.y), Vector3.up, Color.blue, 20f);
-        //print($"Backing reached: {backingReached}");
+        double DB = BackingFireRateOfSpread * TimeCount;
+        Vector2 backingPos = new Vector2(
+                            (float) (IgnitionPoint.x + (DB * Math.Sin(DegreesToRadians(BackingFireBearing)))),
+                            (float) (IgnitionPoint.z + (DB * Math.Cos(DegreesToRadians(BackingFireBearing))))
+                            );
+
+        Debug.DrawRay(new Vector3(backingPos.x, IgnitionPoint.y, backingPos.y), Vector3.up * 100, Color.blue, 1000f);
 
         TimeCount += _controller.increment * 60;
     }
@@ -118,50 +136,28 @@ public class FireBehaviour : MonoBehaviour
     /// </summary>
     /// <param name="point">the unity point in game space</param>
     /// <returns></returns>
-    private async Task<float> RateOfSpreadNoWindSlope(Vector3 point)
+    private async Task<double> RateOfSpreadNoWindSlopeInMetres(Vector3 point)
     {
         FuelModel model = await FuelModelParameters(point);
-        float fuelMoisture = await FuelMoistureContent(point);
+        double fuelMoisture = await FuelMoistureContent(point);
 
-        float propFluxNoWindSlope = await PropagatingFluxNoWindSlope(point);
+        double propFluxNoWindSlope = await PropagatingFluxNoWindSlope(point);
 
-        float heatSink = HeatSink(fuelMoisture, model);
+        double heatSink = HeatSink(fuelMoisture, model);
 
         if (propFluxNoWindSlope == 0 || heatSink == 0) { return 0; }
 
-        return propFluxNoWindSlope / heatSink;
+        return FeetToMetres(propFluxNoWindSlope / heatSink);
     }
 
-    /// <summary>
-    /// Returns the rate of spread of fire in ft/min given upslope wind.
-    /// </summary>
-    /// <param name="point"></param>
-    /// <returns></returns>
-    private async Task<SpreadModel> RateOfSpreaUpslopeWind(Vector3 point)
-    {
-        FuelModel model = await FuelModelParameters(point);
-     
-        float r0 = await RateOfSpreadNoWindSlope(point); // zero-wind, zero-slope rate of spread
-        float windFactor = await WindFactor(point); // use current wind speed
-        float slopeFactor = await SlopeFactor(point);
-
-        SpreadModel spread =
-                    new SpreadModel(
-                        r0 * (1f + windFactor + slopeFactor),
-                        GetSlopeBearingInDegrees(GetHitInfo(point))
-                    );
-
-        return spread;
-    }
-
-    private async Task<SpreadModel> RateOfMaximumSpread(Vector3 point)
+    private async Task<SpreadModel> RateOfMaximumSpreadInMetres(Vector3 point)
     {
         WeatherModel weatherModel = await MidflameWindSpeed(point);
         Wind currentWind = weatherModel.current;
 
-        float r0 = await RateOfSpreadNoWindSlope(point);
-        float slopeBearing = GetSlopeBearingInDegrees(GetHitInfo(point));
-        float windBearing = currentWind.wind_deg;
+        double r0 = await RateOfSpreadNoWindSlopeInMetres(point);
+        double slopeBearing = GetSlopeBearingInDegrees(GetHitInfo(point));
+        double windBearing = currentWind.wind_deg;
 
         /* for elapsed time t, the slope vector has magnitude Ds and direction 0.
          * The wind vector has magnitude Dw in direction w from the upslope.
@@ -169,17 +165,17 @@ public class FireBehaviour : MonoBehaviour
          * The resultant vector is then (Ds + Dwcosw, Dwsinw). 
          * The magnitude of the head fire vector is Dh in direction a.
          */
-        float Ds = r0 * await SlopeFactor(point);
-        float Dw = r0 * await WindFactor(point);
-        float w = Mathf.Abs(slopeBearing - windBearing);
+        double Ds = r0 * await SlopeFactor(point);
+        double Dw = r0 * await WindFactor(point);
+        double w = Math.Abs(slopeBearing - windBearing);
 
-        float X = Ds + (Dw * Mathf.Cos(DegreesToRadians(w)));
-        float Y = Dw * Mathf.Sin(DegreesToRadians(w));
-        float Dh = (float) Math.Pow(Math.Pow(X, 2f) + Math.Pow(Y, 2f), 0.5f);
+        double X = Ds + (Dw * Math.Cos(DegreesToRadians(w)));
+        double Y = Dw * Math.Sin(DegreesToRadians(w));
+        double Dh = (double) Math.Pow(Math.Pow(X, 2f) + Math.Pow(Y, 2f), 0.5f);
 
-        float a;
+        double a;
         if (Y == 0f || Dh == 0f) { a = 0f; }
-        else { a = Mathf.Asin(DegreesToRadians(Mathf.Abs(Y) / Dh)); }
+        else { a = Math.Asin(DegreesToRadians(Math.Abs(Y) / Dh)); }
         
         // calculate a relative to North bearing
         if (slopeBearing >= windBearing)
@@ -189,7 +185,7 @@ public class FireBehaviour : MonoBehaviour
         {
             a += slopeBearing;
         }
-        float Rh = r0 + (Dh / 1f); // t = 1
+        double Rh = r0 + (Dh / 1f); // t = 1
 
         return new SpreadModel(Rh, a);
     }
@@ -200,10 +196,10 @@ public class FireBehaviour : MonoBehaviour
     /// <param name="Mf">moisture content</param>
     /// <param name="model">fuel model</param>
     /// <returns></returns>
-    private float HeatSink(float Mf, FuelModel model)
+    private double HeatSink(double Mf, FuelModel model)
     {
-        return FuelModel.particle_density *
-                EffectiveHeatingNumber(model.characteristic_sav) *
+        return model.mean_bulk_density *
+                EffectiveHeatingNumber(model) *
                 HeatOfPreignition(Mf);
     }
 
@@ -211,16 +207,18 @@ public class FireBehaviour : MonoBehaviour
     /// </summary>
     /// <param name="sigma">surface-area-to-volume-ratio</param>
     /// <returns></returns>
-    private float EffectiveHeatingNumber(float sigma)
+    private double EffectiveHeatingNumber(FuelModel model)
     {
-        return Mathf.Exp(- 138 / sigma);
+        if (model.characteristic_sav == 0.0) { return 0.0; }
+
+        return Math.Exp(- 138 / model.characteristic_sav);
     }
 
     /// <summary>
     /// </summary>
     /// <param name="Mf">moisture content</param>
     /// <returns></returns>
-    private float HeatOfPreignition(float Mf)
+    private double HeatOfPreignition(double Mf)
     {
         return 250 + (1116 * Mf);
     }
@@ -231,12 +229,9 @@ public class FireBehaviour : MonoBehaviour
     /// </summary>
     /// <param name="point"></param>
     /// <returns></returns>
-    private async Task<float> HeatSource(Vector3 point)
+    private async Task<double> HeatSource(Vector3 point)
     {
-        float Mf = await FuelMoistureContent(point);
-        FuelModel model = await FuelModelParameters(point);
-        float propFlux = await PropagatingFluxNoWindSlope(point);
-        Wind wind = (await MidflameWindSpeed(point)).current;
+        double propFlux = await PropagatingFluxNoWindSlope(point);
 
         return propFlux * (1f + await SlopeFactor(point) + await WindFactor(point));
     }
@@ -245,7 +240,7 @@ public class FireBehaviour : MonoBehaviour
     /// </summary>
     /// <param name="point"></param>
     /// <returns>no-wind, no-slope propagating flux</returns>
-    private async Task<float> PropagatingFluxNoWindSlope(Vector3 point)
+    private async Task<double> PropagatingFluxNoWindSlope(Vector3 point)
     {
         FuelModel model = await FuelModelParameters(point);
         return await ReactionIntensity(point) * PropagatingFluxRatio(model);
@@ -255,15 +250,16 @@ public class FireBehaviour : MonoBehaviour
     /// </summary>
     /// <param name="point"></param>
     /// <returns></returns>
-    private async Task<float> ReactionIntensity(Vector3 point)
+    private async Task<double> ReactionIntensity(Vector3 point)
     {
-        float Mf = await FuelMoistureContent(point);
+        double Mf = await FuelMoistureContent(point);
         FuelModel model = await FuelModelParameters(point);
-        float wn = NetFuelLoad(model.oven_dry_fuel_load);
-        float nM = MoistureDampingCoefficient(Mf, model.dead_fuel_moisture_of_extinction);
+        double wn = NetFuelLoad(model.oven_dry_fuel_load);
+        double nM = MoistureDampingCoefficient(Mf, model.dead_fuel_moisture_of_extinction);
+        double g = NetFuelLoadWeightingFactor(model);
 
         return OptimumReactionVelocity(model) *
-                wn *
+                (wn * g) *
                 FuelModel.heat_content *
                 nM *
                 MineralDampingCoefficient();
@@ -273,42 +269,42 @@ public class FireBehaviour : MonoBehaviour
     /// </summary>
     /// <param name="model">fuel model</param>
     /// <returns></returns>
-    private float OptimumReactionVelocity(FuelModel model)
+    private double OptimumReactionVelocity(FuelModel model)
     {
-        float A;
+        double A;
 
-        if (model.characteristic_sav == 0f) { A = 0f; }
-        else { A = 133f * Mathf.Pow(model.characteristic_sav, -0.7913f); }
+        if (model.characteristic_sav == 0f) { A = 00; }
+        else { A = 133 * Math.Pow(model.characteristic_sav, -0.7913); }
 
-        if (model.relative_packing_ratio == 0f) { return 0f; }
+        if (model.relative_packing_ratio == 0.0) { return 0.0; }
 
         return MaximumReactionVelocity(model.characteristic_sav) *
-                Mathf.Pow(model.relative_packing_ratio, A) *
-                Mathf.Exp(A * (1f - model.relative_packing_ratio));
+                Math.Pow(model.relative_packing_ratio, A) *
+                Math.Exp(A * (1.0 - model.relative_packing_ratio));
     }
 
     /// <summary>
     /// </summary>
     /// <param name="sigma">surface-area-to-volume-ratio</param>
     /// <returns></returns>
-    private float MaximumReactionVelocity(float sigma)
+    private double MaximumReactionVelocity(double sigma)
     {
-        if (sigma == 0f) { return 0f; }
+        if (sigma == 0f) { return 0; }
 
-        return Mathf.Pow(sigma, 1.5f) *
-                Mathf.Pow(495f + (0.0594f * Mathf.Pow(sigma, 1.5f)), -1f);
+        return Math.Pow(sigma, 1.5) *
+                Math.Pow(495f + (0.0594 * Math.Pow(sigma, 1.5)), -1.0);
     }
 
     /// <summary>
     /// </summary>
     /// <param name="model">fuel model</param>
     /// <returns></returns>
-    private float PropagatingFluxRatio(FuelModel model)
+    private double PropagatingFluxRatio(FuelModel model)
     {
-        float beta = MeanPackingRatio(model);
+        double beta = MeanPackingRatio(model);
 
-        return Mathf.Pow(192f + (0.2595f * model.characteristic_sav), -1f) *
-            Mathf.Exp((0.792f + (0.681f * Mathf.Pow(model.characteristic_sav, 0.5f))) * (beta + 0.1f));
+        return Math.Pow(192.0 + (0.2595 * model.characteristic_sav), -1.0) *
+            Math.Exp((0.792 + (0.681 * Math.Pow(model.characteristic_sav, 0.5))) * (beta + 0.1));
     }
 
     /// <summary>
@@ -316,19 +312,26 @@ public class FireBehaviour : MonoBehaviour
     /// <param name="w0">oven dry fuel load</param>
     /// <param name="sT">total mineral content</param>
     /// <returns></returns>
-    private float NetFuelLoad(float w0)
+    private double NetFuelLoad(double w0)
     {
-        return w0 * (1 - FuelModel.total_mineral_content);
+        return w0 * (1.0 - FuelModel.total_mineral_content);
+    }
+
+    private double NetFuelLoadWeightingFactor(FuelModel model)
+    {
+        if (model.characteristic_sav < 16) { return 0.0; }
+
+        return 1.0;
     }
 
     /// <summary>
     /// </summary>
     /// <param name="Se">effective mineral content</param>
     /// <returns></returns>
-    private float MineralDampingCoefficient()
+    private double MineralDampingCoefficient()
     {
-        float coefficient = 0.174f * Mathf.Pow(FuelModel.effective_mineral_content, -0.19f);
-        return Mathf.Min(coefficient, 1f); // (max = 1)
+        double coefficient = 0.174 * Math.Pow(FuelModel.effective_mineral_content, -0.19);
+        return Math.Min(coefficient, 1.0); // (max = 1)
     }
 
     /// <summary>
@@ -336,45 +339,33 @@ public class FireBehaviour : MonoBehaviour
     /// <param name="Mf">moisture content</param>
     /// <param name="Mx">dead fuel moisture of extinction</param>
     /// <returns></returns>
-    private float MoistureDampingCoefficient(float Mf, float Mx)
+    private double MoistureDampingCoefficient(double Mf, double Mx)
     {
-        float rM = Mathf.Min((Mf / Mx), 1); // (max = 1)
+        double rM = Math.Min((Mf / Mx), 1.0); // (max = 1)
 
-        return (1f - (2.59f * rM)) +
-                (5.11f * Mathf.Pow(rM, 2f)) -
-                (3.52f * Mathf.Pow(rM, 3f));
+        if (rM == 1.0) { return 0.0; }
+
+
+        var coef = (1.0 - (2.59 * rM)) +
+                (5.11 * Math.Pow(rM, 2.0)) -
+                (3.52 * Math.Pow(rM, 3.0));
+
+        return (1.0 - (2.59 * rM)) +
+                (5.11 * Math.Pow(rM, 2.0)) -
+                (3.52 * Math.Pow(rM, 3.0));
     }
 
     /// <summary>
     /// </summary>
     /// <param name="model">fuel model</param>
     /// <returns></returns>
-    private float MeanPackingRatio(FuelModel model)
+    private double MeanPackingRatio(FuelModel model)
     {
-        if (model.fuel_bed_depth == 0 || model.oven_dry_fuel_load == 0) { return 0f; }
-        return (1 / model.fuel_bed_depth) * (model.oven_dry_fuel_load / FuelModel.particle_density);
+        if (model.fuel_bed_depth == 0.0 || model.oven_dry_fuel_load == 0.0) { return 0.0; }
+
+        return (1.0 / model.fuel_bed_depth) * (model.oven_dry_fuel_load / FuelModel.particle_density);
     }
 
-    /// <summary>
-    /// </summary>
-    /// <param name="sigma">surface-area-to-volume-ratio</param>
-    /// <returns></returns>
-    private float OptimumPackingRatio(float sigma)
-    {
-        return 3.348f * Mathf.Pow(sigma, -0.8189f);
-    }
-
-    /// <summary>
-    /// </summary>
-    /// <param name="delta">fuel bed depth</param>
-    /// <param name="w0"><oven-dry fuel load/param>
-    /// <param name="pP">particle density</param>
-    /// <param name="sigma">surface-area-to-volume-ratio</param>
-    /// <returns></returns>
-    private float RelativePackingRatio(FuelModel model)
-    {
-        return MeanPackingRatio(model) / OptimumPackingRatio(model.characteristic_sav);
-    }
     #endregion
 
     #region Environmental
@@ -385,79 +376,78 @@ public class FireBehaviour : MonoBehaviour
     /// </summary>
     /// <param name="iR">reaction intensity</param>
     /// <returns></returns>
-    private float MaximumReliableWindSpeed(float iR)
+    private double MaximumReliableWindSpeed(double iR)
     {
-        return 0.9f * iR;
+        return 0.9 * iR;
     }
 
     /// <summary>
     /// </summary>
     /// <param name="point">the point in space to find the slope factor</param>
     /// <returns></returns>
-    private async Task<float> SlopeFactor(Vector3 point)
+    private async Task<double> SlopeFactor(Vector3 point)
     {
         FuelModel model = await FuelModelParameters(point);
         RaycastHit hitInfo = GetHitInfo(point);
-        float theta = GetSlopeInDegrees(hitInfo);
+        double theta = GetSlopeInDegrees(hitInfo);
 
-        if (model.packing_ratio == 0) { return 0f; }
-        var slopeFactor = 5.27f * Mathf.Pow(model.packing_ratio, -0.3f) * Mathf.Pow(Mathf.Tan(DegreesToRadians(theta)), 2f);
-
-        if (float.IsNaN(slopeFactor))
-        {
-            print("");
-        }
+        if (model.packing_ratio == 0) { return 0.0; }
+        var slopeFactor = 5.27 * Math.Pow(model.packing_ratio, -0.3) * Math.Pow(Math.Tan(DegreesToRadians(theta)), 2);
 
         return slopeFactor;
     }
 
     /// <summary>
+    /// phi_w
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
-    private async Task<float> WindFactor(Vector3 point)
+    private async Task<double> WindFactor(Vector3 point)
     {
         WeatherModel weatherModel = await MidflameWindSpeed(point);
-        float currentWindSpeed = weatherModel.current.wind_speed;
+        double currentWindSpeed = weatherModel.current.wind_speed;
         FuelModel model = await FuelModelParameters(point);
 
         if (model.relative_packing_ratio == 0f) { return 0f; }
 
-        float fuelMoisture = await FuelMoistureContent(point);
-
-        float C = 7.47f * Mathf.Exp(-0.133f * Mathf.Pow(model.characteristic_sav, 0.55f));
-        float B = 0.025256f * Mathf.Pow(model.characteristic_sav, 0.54f);
-        float E = 0.715f * Mathf.Exp(-3.59f * model.characteristic_sav * Mathf.Pow(10f, -4f));
-        float U =
-                Mathf.Min(
+        double C = 7.47 * Math.Exp(-0.133 * Math.Pow(model.characteristic_sav, 0.55));
+        double B = 0.025256 * Math.Pow(model.characteristic_sav, 0.54);
+        double E = 0.715 * Math.Exp(-3.59 * model.characteristic_sav * Math.Pow(10, -4));
+        double U =
+                Math.Min(
                     MaximumReliableWindSpeed(await ReactionIntensity(point)),
                     currentWindSpeed
                 );
 
-        var windFactor = (float)(C * Mathf.Pow(currentWindSpeed, B) * Mathf.Pow(model.relative_packing_ratio, -E));
-        return windFactor;
+        return (double)(C * Math.Pow(U, B) * Math.Pow(model.relative_packing_ratio, -E));
     }
 
-    private async Task<float> EffectiveWindFactor(Vector3 point)
+    /// <summary>
+    /// U_E
+    /// </summary>
+    /// <param name="point"></param>
+    /// <returns></returns>
+    private async Task<double> EffectiveMidflameWindSpeed(Vector3 point)
     {
-        float windFactor = await WindFactor(point);
+        double effectiveWindFactor = WindFactor(point).GetAwaiter().GetResult() +
+                                    SlopeFactor(point).GetAwaiter().GetResult();
+
         FuelModel model = await FuelModelParameters(point);
 
-        if (model.relative_packing_ratio == 0f || windFactor == 0f) { return 0f; }
+        double B = 0.025256 * Math.Pow(model.characteristic_sav, 0.54f);
+        double E = 0.715 * Math.Exp(-3.59f * model.characteristic_sav * Math.Pow(10f, -4f));
+        double C = 7.47 * Math.Exp(-0.133 * Math.Pow(model.characteristic_sav, 0.55));
 
-        float B = 0.025256f * Mathf.Pow(model.characteristic_sav, 0.54f);
-        float E = 0.715f * Mathf.Exp(-3.59f * model.characteristic_sav * Mathf.Pow(10f, -4f));
-
-        return Mathf.Pow(windFactor * Mathf.Pow(model.relative_packing_ratio, E), -B);
+        return Math.Pow(effectiveWindFactor * Math.Pow(model.relative_packing_ratio, E) / C, -B);
     }
 
-    float GetSlopeInDegrees(RaycastHit hitInfo)
+    double GetSlopeInDegrees(RaycastHit hitInfo)
     {
         Vector3 normal = hitInfo.normal;
         return Vector3.Angle(normal, Vector3.up);
     }
 
-    float GetSlopeBearingInDegrees(RaycastHit hitInfo)
+    double GetSlopeBearingInDegrees(RaycastHit hitInfo)
     {
         Vector3 normal = hitInfo.normal;
 
@@ -471,18 +461,18 @@ public class FireBehaviour : MonoBehaviour
 
     #region utils
 
-    float BearingBetweenInDegrees(Vector3 a, Vector3 b)
+    double BearingBetweenInDegrees(Vector3 a, Vector3 b)
     {
         Vector3 normal = Vector3.up;
         // angle in [0, 180]
-        float angle = Vector3.Angle(a, b);
-        float sign = Mathf.Sign(Vector3.Dot(normal, Vector3.Cross(a, b)));
+        double angle = Vector3.Angle(a, b);
+        double sign = Math.Sign(Vector3.Dot(normal, Vector3.Cross(a, b)));
 
         // angle in [-179, 180]
-        float signedAngle = angle * sign;
+        double signedAngle = angle * sign;
 
         // angle in [0, 360]
-        float bearing = (signedAngle + 360) % 360;
+        double bearing = (signedAngle + 360) % 360;
         return bearing;
     }
 
@@ -491,7 +481,7 @@ public class FireBehaviour : MonoBehaviour
         Vector3 origin = new Vector3(point.x, point.y + 100, point.z);
 
         RaycastHit hitInfo;
-        if (Physics.Raycast(origin, Vector3.down, out hitInfo, Mathf.Infinity))
+        if (Physics.Raycast(origin, Vector3.down, out hitInfo, int.MaxValue))
         {
             return hitInfo;
         }
@@ -505,14 +495,28 @@ public class FireBehaviour : MonoBehaviour
         return newPoint;
     }
 
-    private float DegreesToRadians(float deg)
+    private double DegreesToRadians(double deg)
     {
-        return (Mathf.PI / 180f) * deg;
+        return (Math.PI / 180f) * deg;
     }
 
-    private float RadiansToDegrees(float rad)
+    private double RadiansToDegrees(double rad)
     {
-        return (180f / Mathf.PI) * rad;
+        return (180f / Math.PI) * rad;
+    }
+
+    private double FeetToMetres(double feet) => 0.3048 * feet;
+
+    private double ReverseBearing(double forward)
+    {
+        if (forward >= 180)
+        {
+            return forward - 180f;
+        }
+        else
+        {
+            return forward + 180f;
+        }
     }
 
     #endregion
@@ -533,24 +537,15 @@ public class FireBehaviour : MonoBehaviour
     async Task<FuelModel> FuelModelParameters(Vector3 point)
     {
         HttpResponseMessage response;
-        Vector2d latlon = Map.WorldToGeoPosition(point);
 
-        try
-        {
-            int modelNumber = await FuelModelNumber(point);
-            response = client.GetAsync(string.Format(ModelParametersUrl, modelNumber)).Result;
-            response.EnsureSuccessStatusCode();
+        int modelNumber = await FuelModelNumber(point);
+        response = client.GetAsync(string.Format(ModelParametersUrl, modelNumber)).Result;
+        response.EnsureSuccessStatusCode();
 
-            return JsonUtility.FromJson<FuelModel>(await response.Content.ReadAsStringAsync());
-        } catch (Exception e)
-        {
-            print("");
-            return new FuelModel();
-        }
-
+        return JsonUtility.FromJson<FuelModel>(await response.Content.ReadAsStringAsync());
     }
 
-    async Task<float> FuelMoistureContent(Vector3 point)
+    async Task<double> FuelMoistureContent(Vector3 point)
     {
         HttpResponseMessage response;
         Vector2d latlon = Map.WorldToGeoPosition(point);
@@ -558,10 +553,10 @@ public class FireBehaviour : MonoBehaviour
         response = client.GetAsync(string.Format(MoistureUrl, latlon.x, latlon.y)).Result;
         response.EnsureSuccessStatusCode();
         return
-            float.Parse(
+            double.Parse(
                 await response.Content.ReadAsStringAsync(),
                 CultureInfo.InvariantCulture.NumberFormat
-            );
+            ) / 100; // divide by 100 to get percentage fuel moisture content.
     }
 
     async Task<WeatherModel> MidflameWindSpeed(Vector3 point)
