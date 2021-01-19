@@ -24,7 +24,7 @@ public class FireBehaviour : MonoBehaviour
 
     private bool Active = false;
     private FireController _controller;
-    private float HoursPassed = 1;
+    private ulong TimeCount = 1;
 
     private double LengthWidthRatio;
     private double Eccentricity;
@@ -45,7 +45,7 @@ public class FireBehaviour : MonoBehaviour
         IgnitionPoint = ignitionPoint;
         _controller = controller;
 
-        var maxSpread = RateOfMaximumSpreadInMetresPerMinute(IgnitionPoint).GetAwaiter().GetResult();
+        var maxSpread = RateOfMaximumSpreadInMetres(IgnitionPoint).GetAwaiter().GetResult();
         HeadingFireRateOfSpread = maxSpread.spreadRate;
         HeadingFireBearing = maxSpread.spreadBearing;
 
@@ -90,7 +90,7 @@ public class FireBehaviour : MonoBehaviour
 
     private void CalculateSpread()
     {
-        print($"Hours Passed: {HoursPassed}");
+        print($"Hours Passed: {TimeCount}");
         // loop through each direction (360 degrees) from the ignition point
         foreach(DictionaryEntry entry in directions)
         {
@@ -104,7 +104,7 @@ public class FireBehaviour : MonoBehaviour
             if (anticlockwiseAngle < 0.0) { anticlockwiseAngle += 360.0; }
             anticlockwiseAngle = DegreesToRadians(anticlockwiseAngle);
 
-            double DH_angle = spreadRate * HoursPassed;
+            double DH_angle = spreadRate * TimeCount;
             Vector2 clockwisePos = new Vector2(
                                 (float)(IgnitionPoint.x + (DH_angle * Math.Sin(clockwiseAngle))),
                                 (float)(IgnitionPoint.z + (DH_angle * Math.Cos(clockwiseAngle)))
@@ -120,7 +120,7 @@ public class FireBehaviour : MonoBehaviour
             Debug.DrawRay(new Vector3(anticlockwisePos.x, IgnitionPoint.y, anticlockwisePos.y), Vector3.up * 100, Color.red, 1000f);
         }
 
-        double DB = BackingFireRateOfSpread * HoursPassed;
+        double DB = BackingFireRateOfSpread * TimeCount;
         Vector2 backingPos = new Vector2(
                             (float) (IgnitionPoint.x + (DB * Math.Sin(DegreesToRadians(BackingFireBearing)))),
                             (float) (IgnitionPoint.z + (DB * Math.Cos(DegreesToRadians(BackingFireBearing))))
@@ -128,15 +128,15 @@ public class FireBehaviour : MonoBehaviour
 
         Debug.DrawRay(new Vector3(backingPos.x, IgnitionPoint.y, backingPos.y), Vector3.up * 100, Color.blue, 1000f);
 
-        HoursPassed += _controller.HourIncrement * 60f;
+        TimeCount += _controller.increment * 60;
     }
 
     /// <summary>
-    /// Returns the rate of spread of fire in m/min given no wind or slope.
+    /// Returns the rate of spread of fire in ft/min given no wind or slope.
     /// </summary>
     /// <param name="point">the unity point in game space</param>
     /// <returns></returns>
-    private async Task<double> ZeroWindZeroSlopeRateOfSpreadInMetresPerMin(Vector3 point)
+    private async Task<double> RateOfSpreadNoWindSlopeInMetres(Vector3 point)
     {
         FuelModel model = await FuelModelParameters(point);
         double fuelMoisture = await FuelMoistureContent(point);
@@ -150,12 +150,12 @@ public class FireBehaviour : MonoBehaviour
         return FeetToMetres(propFluxNoWindSlope / heatSink);
     }
 
-    private async Task<SpreadModel> RateOfMaximumSpreadInMetresPerMinute(Vector3 point)
+    private async Task<SpreadModel> RateOfMaximumSpreadInMetres(Vector3 point)
     {
         WeatherModel weatherModel = await MidflameWindSpeed(point);
         Wind currentWind = weatherModel.current;
 
-        double r0 = await ZeroWindZeroSlopeRateOfSpreadInMetresPerMin(point);
+        double r0 = await RateOfSpreadNoWindSlopeInMetres(point);
         double slopeBearing = GetSlopeBearingInDegrees(GetHitInfo(point));
         double windBearing = currentWind.wind_deg;
 

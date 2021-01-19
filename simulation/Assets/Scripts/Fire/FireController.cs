@@ -5,5 +5,6 @@ using UnityEngine;
 public class FireController
 {
     [SerializeField]
-    public float HourIncrement = 0.1f;
+    [Range(0, 100)]
+    public ulong increment = 1;
 }
