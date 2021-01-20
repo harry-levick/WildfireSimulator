@@ -1,4 +1,5 @@
 ﻿using System;
+using Assets.Scripts.FireScripts;
 using UnityEngine;
 
 namespace Assets.Scripts.CameraScripts

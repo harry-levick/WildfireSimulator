@@ -3,6 +3,7 @@ using System.Collections;
 using System.Globalization;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Assets.Scripts.Models;
 using Mapbox.Unity.Map;
 using Mapbox.Utils;
 using UnityEngine;
@@ -155,7 +156,7 @@ namespace Assets.Scripts.FireScripts
         private async Task<SpreadModel> RateOfMaximumSpreadInMetresPerMinute(Vector3 point)
         {
             WeatherModel weatherModel = await MidflameWindSpeed(point);
-            Wind currentWind = weatherModel.current;
+            WindModel currentWind = weatherModel.current;
 
             double r0 = await ZeroWindZeroSlopeRateOfSpreadInMetresPerMin(point);
             double slopeBearing = GetSlopeBearingInDegrees(GetHitInfo(point));
