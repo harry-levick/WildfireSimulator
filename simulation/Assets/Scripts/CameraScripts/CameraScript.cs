@@ -8,18 +8,18 @@ namespace Assets.Scripts.CameraScripts
 {
     public class CameraScript : MonoBehaviour
     {
-        [SerializeField] private CameraSettings _settings = new CameraSettings();
         private CameraAction _cameraAction = new CameraAction();
-
-        public Button IgniteButton;
-        public UnityService UnityService;
-    
         private Vector3 _north = Vector3.forward;
         private GameObject _mapObject;
         private Camera _camera;
         private Vector3 _anchorPoint;
         private Quaternion _anchorRot;
 
+        [SerializeField]
+        public CameraSettings Settings = new CameraSettings();
+        public Button IgniteButton;
+        public IUnityService UnityService;
+    
         private void Awake()
         {
             _camera = GetComponent<Camera>();
@@ -63,17 +63,17 @@ namespace Assets.Scripts.CameraScripts
         {
             Vector3 move = Vector3.zero;
             if (UnityService.GetKey(KeyCode.W))
-                move += Vector3.forward * _settings.Speed;
+                move += Vector3.forward * Settings.Speed;
             if (UnityService.GetKey(KeyCode.S))
-                move -= Vector3.forward * _settings.Speed;
+                move -= Vector3.forward * Settings.Speed;
             if (UnityService.GetKey(KeyCode.D))
-                move += Vector3.right * _settings.Speed;
+                move += Vector3.right * Settings.Speed;
             if (UnityService.GetKey(KeyCode.A))
-                move -= Vector3.right * _settings.Speed;
+                move -= Vector3.right * Settings.Speed;
             if (UnityService.GetKey(KeyCode.E))
-                move += Vector3.up * _settings.Speed;
+                move += Vector3.up * Settings.Speed;
             if (UnityService.GetKey(KeyCode.Q))
-                move -= Vector3.up * _settings.Speed;
+                move -= Vector3.up * Settings.Speed;
 
             return move;
         }
@@ -89,7 +89,7 @@ namespace Assets.Scripts.CameraScripts
             {
                 Quaternion rot = _anchorRot;
                 Vector3 dif = _anchorPoint - new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
-                rot.eulerAngles += dif * _settings.Sensitivity;
+                rot.eulerAngles += dif * Settings.Sensitivity;
                 transform.rotation = rot;
             }
         }
@@ -104,7 +104,7 @@ namespace Assets.Scripts.CameraScripts
                 if (Physics.Raycast(ray, out RaycastHit hitInfo, Mathf.Infinity))
                 {
                     FireBehaviour newFire = _mapObject.AddComponent<FireBehaviour>();
-                    newFire.Activate(hitInfo.point, ref _settings.FireController);
+                    newFire.Activate(hitInfo.point, ref Settings.FireController);
                 }
             }
         }
