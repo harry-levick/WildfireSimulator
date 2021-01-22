@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.FireScripts;
+﻿using System.Collections.Generic;
+using Assets.Scripts.FireScripts;
 using Assets.Scripts.Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -18,13 +19,16 @@ namespace Assets.Scripts.CameraScripts
         [SerializeField]
         public CameraSettings Settings = new CameraSettings();
         public Button IgniteButton;
+        public Button PauseButton;
         public IUnityService UnityService;
+        public List<FireBehaviour> AllFires;
     
         private void Awake()
         {
             _camera = GetComponent<Camera>();
             _mapObject = GameObject.Find("Map");
             UnityService = new UnityService();
+            AllFires = new List<FireBehaviour>();
         }
 
         // Update is called once per frame
@@ -45,6 +49,20 @@ namespace Assets.Scripts.CameraScripts
             IgniteButton.GetComponent<Image>().color =
                 CameraUISettings.GetIgnitingButtonColor(_cameraAction.GetIgniting());
 
+        }
+
+        public void TogglePaused()
+        {
+            _cameraAction.TogglePaused();
+
+            var paused = _cameraAction.GetPaused();
+            PauseButton.GetComponent<Image>().color =
+                CameraUISettings.GetPausedButtonColor(paused);
+            PauseButton.GetComponentInChildren<Text>().text =
+                CameraUISettings.GetPausedButtonText(paused);
+
+            if (paused) AllFires.ForEach(fire => fire.Pause());
+            else AllFires.ForEach(fire => fire.Play());
         }
 
         private void HandleLeftMouseButton()
@@ -104,6 +122,7 @@ namespace Assets.Scripts.CameraScripts
                 if (Physics.Raycast(ray, out RaycastHit hitInfo, Mathf.Infinity))
                 {
                     FireBehaviour newFire = _mapObject.AddComponent<FireBehaviour>();
+                    AllFires.Add(newFire);
                     newFire.Activate(hitInfo.point, ref Settings.FireController);
                 }
             }

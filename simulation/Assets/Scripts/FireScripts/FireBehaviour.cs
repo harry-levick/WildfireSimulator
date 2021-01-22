@@ -79,6 +79,16 @@ namespace Assets.Scripts.FireScripts
             Active = true;
         }
 
+        public void Pause()
+        {
+            Active = false;
+        }
+
+        public void Play()
+        {
+            if ((IgnitionPoint != null) && !Active) Active = true;
+        }
+
         // Update is called once per frame
         private void Update()
         {
