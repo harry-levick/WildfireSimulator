@@ -16,8 +16,7 @@ namespace Assets.Scripts.CameraScripts
         private Vector3 _anchorPoint;
         private Quaternion _anchorRot;
 
-        [SerializeField]
-        public CameraSettings Settings = new CameraSettings();
+        [SerializeField] public CameraSettings Settings = new CameraSettings();
         public Button IgniteButton;
         public Button PauseButton;
         public IUnityService UnityService;
@@ -40,8 +39,6 @@ namespace Assets.Scripts.CameraScripts
 
             transform.Translate(CalculateMovement());
         }
-
-
 
         public void ToggleIgniting()
         {
@@ -83,15 +80,15 @@ namespace Assets.Scripts.CameraScripts
             if (UnityService.GetKey(KeyCode.W))
                 move += Vector3.forward * Settings.Speed;
             if (UnityService.GetKey(KeyCode.S))
-                move -= Vector3.forward * Settings.Speed;
+                move += Vector3.back * Settings.Speed;
             if (UnityService.GetKey(KeyCode.D))
                 move += Vector3.right * Settings.Speed;
             if (UnityService.GetKey(KeyCode.A))
-                move -= Vector3.right * Settings.Speed;
+                move += Vector3.left * Settings.Speed;
             if (UnityService.GetKey(KeyCode.E))
                 move += Vector3.up * Settings.Speed;
             if (UnityService.GetKey(KeyCode.Q))
-                move -= Vector3.up * Settings.Speed;
+                move += Vector3.down * Settings.Speed;
 
             return move;
         }
