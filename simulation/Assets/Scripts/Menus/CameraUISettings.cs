@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Assets.Scripts.CameraScripts
+namespace Assets.Scripts.Menus
 {
     public static class CameraUISettings
     {

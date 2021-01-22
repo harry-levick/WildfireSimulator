@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.FireScripts;
+using Assets.Scripts.Menus;
 using Assets.Scripts.Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -21,6 +22,7 @@ namespace Assets.Scripts.CameraScripts
         public Button PauseButton;
         public IUnityService UnityService;
         public List<FireBehaviour> AllFires;
+        public GameMenu Menu;
     
         private void Awake()
         {
@@ -28,6 +30,7 @@ namespace Assets.Scripts.CameraScripts
             _mapObject = GameObject.Find("Map");
             UnityService = new UnityService();
             AllFires = new List<FireBehaviour>();
+            Menu = new GameMenu(ref AllFires, _cameraAction, IgniteButton, PauseButton);
         }
 
         // Update is called once per frame
@@ -40,27 +43,10 @@ namespace Assets.Scripts.CameraScripts
             transform.Translate(CalculateMovement());
         }
 
-        public void ToggleIgniting()
-        {
-            _cameraAction.ToggleIgniting();
-            IgniteButton.GetComponent<Image>().color =
-                CameraUISettings.GetIgnitingButtonColor(_cameraAction.GetIgniting());
 
-        }
-
-        public void TogglePaused()
-        {
-            _cameraAction.TogglePaused();
-
-            var paused = _cameraAction.GetPaused();
-            PauseButton.GetComponent<Image>().color =
-                CameraUISettings.GetPausedButtonColor(paused);
-            PauseButton.GetComponentInChildren<Text>().text =
-                CameraUISettings.GetPausedButtonText(paused);
-
-            if (paused) AllFires.ForEach(fire => fire.Pause());
-            else AllFires.ForEach(fire => fire.Play());
-        }
+        public void TogglePaused() => Menu.HudMenu.TogglePaused();
+        public void ToggleIgniting() => Menu.HudMenu.ToggleIgniting();
+        public void ToggleSettings() => Menu.ToggleSettings();
 
         private void HandleLeftMouseButton()
         {
