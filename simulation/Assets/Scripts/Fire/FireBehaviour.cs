@@ -10,11 +10,9 @@ using UnityEngine;
 
 namespace Fire
 {
-    public class FireBehaviour
+    public class FireBehaviour : MonoBehaviour
     {
-        private readonly AbstractMap Map;
-        private readonly Vector3 _ignitionPoint;
-        readonly Vector3 _north = new Vector3(0, 0, 1);
+        private readonly Vector3 _north = new Vector3(0, 0, 1);
         private static readonly HttpClient Client = new HttpClient();
         private const string ModelNumberUrl =
             "http://127.0.0.1:5000/model-number?lat={0}&lon={1}";
@@ -28,19 +26,28 @@ namespace Fire
         private bool _active = false;
         private float _hoursPassed = 1;
 
+        private AbstractMap _map;
+        private Vector3 _ignitionPoint;
         private double _lengthWidthRatio;
         private double _eccentricity;
         private double _headingFireRateOfSpread;
         private double _headingFireBearing;
         private double _backingFireRateOfSpread;
         private double _backingFireBearing;
+        private GameObject _windArrow;
 
         private Hashtable _directions = new Hashtable();
-        
-        public FireBehaviour(AbstractMap map, Vector3 ignitionPoint)
+
+        private void Awake()
         {
-            Map = map;
+            _windArrow = Resources.Load("Prefabs/WindArrow") as GameObject;
+        }
+
+        public void Initialise(Vector3 ignitionPoint, AbstractMap map)
+        {
             _ignitionPoint = ignitionPoint;
+            _map = map;
+            Instantiate(_windArrow, _ignitionPoint, Quaternion.identity);
         }
 
         public bool CanBurn()
@@ -497,8 +504,8 @@ namespace Fire
 
         Vector3 GetVector3FromVector2(Vector3 point)
         {
-            Vector2d latlon = Map.WorldToGeoPosition(new Vector3(point.x, 0, point.z));
-            Vector3 newPoint = new Vector3(point.x, Map.QueryElevationInUnityUnitsAt(latlon), point.y);
+            Vector2d latlon = _map.WorldToGeoPosition(new Vector3(point.x, 0, point.z));
+            Vector3 newPoint = new Vector3(point.x, _map.QueryElevationInUnityUnitsAt(latlon), point.y);
             return newPoint;
         }
 
@@ -533,7 +540,7 @@ namespace Fire
         {
             HttpResponseMessage response;
 
-            var latlon = Map.WorldToGeoPosition(point);
+            var latlon = _map.WorldToGeoPosition(point);
 
             response = Client.GetAsync(string.Format(ModelNumberUrl, latlon.x, latlon.y)).Result;
             response.EnsureSuccessStatusCode();
@@ -555,7 +562,7 @@ namespace Fire
         async Task<double> FuelMoistureContent(Vector3 point)
         {
             HttpResponseMessage response;
-            var latlon = Map.WorldToGeoPosition(point);
+            var latlon = _map.WorldToGeoPosition(point);
 
             response = Client.GetAsync(string.Format(MoistureUrl, latlon.x, latlon.y)).Result;
             response.EnsureSuccessStatusCode();
@@ -569,7 +576,7 @@ namespace Fire
         async Task<Weather> MidflameWindSpeed(Vector3 point)
         {
             HttpResponseMessage response;
-            var latlon = Map.WorldToGeoPosition(point);
+            var latlon = _map.WorldToGeoPosition(point);
 
             response = Client.GetAsync(string.Format(WindSpeedUrl, latlon.x, latlon.y)).Result;
             response.EnsureSuccessStatusCode();
