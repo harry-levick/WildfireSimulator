@@ -8,6 +8,7 @@ namespace GameMenu
     {
         public Button ignite;
         public Button pause;
+        public Button settings;
 
         private bool _pauseClicked;
         
@@ -37,6 +38,12 @@ namespace GameMenu
                 MenuConstants.GetPausedButtonText(_pauseClicked);
 
             _playerController.PauseAllFires(_pauseClicked);
+        }
+
+        public void SetInteractable(bool interactable)
+        {
+            ignite.interactable = interactable;
+            pause.interactable = interactable;
         }
 
     }

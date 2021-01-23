@@ -21,6 +21,7 @@ namespace Player
         public PlayerSettings settings = new PlayerSettings();
         public IUnityService UnityService;
         public Hud hudMenu;
+        public Settings settingsMenu;
         public new Camera camera;
         public AbstractMap map;
         
@@ -43,6 +44,8 @@ namespace Player
         
         private void HandleLeftMouseButton()
         {
+            if (settingsMenu.IsOpen()) return;
+            
             if (UnityService.GetMouseButtonDown(0))
             {
                 _mousePressed = true;
@@ -55,7 +58,9 @@ namespace Player
 
         private Vector3 CalculateMovement()
         {
-            Vector3 move = Vector3.zero;
+            if (settingsMenu.IsOpen()) return Vector3.zero;
+            
+            var move = Vector3.zero;
             if (UnityService.GetKey(KeyCode.W))
                 move += Vector3.forward * settings.Speed;
             if (UnityService.GetKey(KeyCode.S))
@@ -74,6 +79,8 @@ namespace Player
 
         private void HandleRightMouseButton()
         {
+            if (settingsMenu.IsOpen()) return;
+            
             if (UnityService.GetMouseButtonDown(1))
             {
                 _anchorPoint = new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
@@ -124,6 +131,7 @@ namespace Player
             _allFires.Add(fire);
             fire.Ignite();
         }
+
 
     }
 }
