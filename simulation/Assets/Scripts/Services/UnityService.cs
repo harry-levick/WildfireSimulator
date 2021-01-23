@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Assets.Scripts.Services
+namespace Player.Services
 {
     public class UnityService : IUnityService
     {

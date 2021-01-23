@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Assets.Scripts.Models
+namespace Player.Model
 {
     [Serializable]
-    public class WeatherModel
+    public class Weather
     {
-        public WindModel current;
-        public List<WindModel> daily;
-        public List<WindModel> hourly;
+        public Wind current;
+        public List<Wind> daily;
+        public List<Wind> hourly;
         public float lat;
         public float lon;
         public string timezone;

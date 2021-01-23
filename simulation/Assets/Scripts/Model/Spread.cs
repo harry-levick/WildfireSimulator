@@ -1,13 +1,13 @@
 ﻿using System;
 
-namespace Assets.Scripts.Models
+namespace Player.Model
 {
-    public class SpreadModel
+    public class Spread
     {
         public double spreadRate; // the rate of spread in ft/min
         public double spreadBearing; // the direction of spread as a bearing.
 
-        public SpreadModel(double rate, double bearing)
+        public Spread(double rate, double bearing)
         {
             spreadRate = rate;
             spreadBearing = bearing;

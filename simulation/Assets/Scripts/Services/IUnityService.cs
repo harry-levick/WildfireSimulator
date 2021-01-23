@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Assets.Scripts.Services
+namespace Player.Services
 {
     public interface IUnityService
     {
