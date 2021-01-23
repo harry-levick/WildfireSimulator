@@ -1,5 +1,5 @@
 ﻿
-namespace Assets.Scripts.Player
+namespace Player
 {
     public class PlayerAction
     {

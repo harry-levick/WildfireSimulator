@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Scripts.Menu
+namespace GameMenu
 {
     public class Settings : MonoBehaviour
     {
-        public void OpenSettings()
-        {
-
-        }
+        
     }
 }

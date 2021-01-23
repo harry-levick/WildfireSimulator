@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Assets.Scripts.Model
+namespace Player.Model
 {
     [Serializable]
     public class Fuel

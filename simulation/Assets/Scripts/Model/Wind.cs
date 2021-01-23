@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Assets.Scripts.Model
+namespace Player.Model
 {
     [Serializable]
     public class Wind

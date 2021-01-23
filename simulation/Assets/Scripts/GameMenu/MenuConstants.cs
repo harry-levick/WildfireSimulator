@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Assets.Scripts.Menu
+namespace GameMenu
 {
     public static class MenuConstants
     {

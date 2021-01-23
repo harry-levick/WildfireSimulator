@@ -1,12 +1,12 @@
-﻿using Assets.Scripts.Player;
+﻿using Player;
 using System.Collections;
 using NSubstitute;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Assets.Scripts.Services;
+using Player.Services;
 
-namespace Assets.Tests
+namespace Tests
 {
     public class CameraTests
     {
@@ -15,11 +15,11 @@ namespace Assets.Tests
         [UnityTest]
         public IEnumerator PressKeyWMovesCameraForwardTest()
         {
-            var camera = new GameObject().AddComponent<Player>();
+            var camera = new GameObject().AddComponent<PlayerController>();
             var unityService = Substitute.For<IUnityService>();
             unityService.GetKey(KeyCode.W).Returns(true);
 
-            camera.Settings.Speed = 1f;
+            camera.settings.Speed = 1f;
             camera.UnityService = unityService;
 
             yield return null;

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Assets.Scripts.Model
+namespace Player.Model
 {
     public class Spread
     {
