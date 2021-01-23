@@ -1,14 +1,14 @@
 ﻿
-namespace Assets.Scripts.CameraScripts
+namespace Assets.Scripts.Player
 {
-    public class CameraAction
+    public class PlayerAction
     {
         private bool _mousePressed;
         private bool _igniting;
         private bool _paused;
         private bool _settingsMenu;
 
-        public CameraAction()
+        public PlayerAction()
         {
             _mousePressed = false;
             _igniting = false;

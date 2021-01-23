@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using Assets.Scripts.CameraScripts;
-using Assets.Scripts.FireScripts;
+﻿using System.Collections.Generic;
+using Assets.Scripts.Player;
+using Assets.Scripts.Fire;
 using UnityEngine.UI;
 
-namespace Assets.Scripts.Menus
+namespace Assets.Scripts.Menu
 {
-    public class HudMenu
+    public class Hud
     {
         public List<FireBehaviour> AllFires;
-        public CameraAction CameraAction;
+        public PlayerAction CameraAction;
         public Button Ignite;
         public Button Pause;
 
-        public HudMenu(List<FireBehaviour> allFires, CameraAction action, Button ignite, Button pause)
+        public Hud(List<FireBehaviour> allFires, PlayerAction action, Button ignite, Button pause)
         {
             AllFires = allFires;
             CameraAction = action;
@@ -25,7 +24,7 @@ namespace Assets.Scripts.Menus
         {
             CameraAction.ToggleIgniting();
             Ignite.GetComponent<Image>().color =
-                CameraUISettings.GetIgnitingButtonColor(CameraAction.GetIgniting());
+                MenuConstants.GetIgnitingButtonColor(CameraAction.GetIgniting());
 
         }
 
@@ -35,17 +34,13 @@ namespace Assets.Scripts.Menus
 
             var paused = CameraAction.GetPaused();
             Pause.GetComponent<Image>().color =
-                CameraUISettings.GetPausedButtonColor(paused);
+                MenuConstants.GetPausedButtonColor(paused);
             Pause.GetComponentInChildren<Text>().text =
-                CameraUISettings.GetPausedButtonText(paused);
+                MenuConstants.GetPausedButtonText(paused);
 
             if (paused) AllFires.ForEach(fire => fire.Pause());
             else AllFires.ForEach(fire => fire.Play());
         }
 
-        public void ToggleSettings()
-        {
-
-        }
     }
 }

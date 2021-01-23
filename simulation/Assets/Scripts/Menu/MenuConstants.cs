@@ -1,9 +1,9 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Assets.Scripts.Menus
+namespace Assets.Scripts.Menu
 {
-    public static class CameraUISettings
+    public static class MenuConstants
     {
         private static Color _ignitingTrueColor = Color.red;
         private static Color _ignitingFalseColor = Color.gray;

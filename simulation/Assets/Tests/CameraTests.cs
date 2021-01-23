@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.CameraScripts;
+﻿using Assets.Scripts.Player;
 using System.Collections;
 using NSubstitute;
 using NUnit.Framework;
@@ -15,7 +15,7 @@ namespace Assets.Tests
         [UnityTest]
         public IEnumerator PressKeyWMovesCameraForwardTest()
         {
-            var camera = new GameObject().AddComponent<CameraScript>();
+            var camera = new GameObject().AddComponent<Player>();
             var unityService = Substitute.For<IUnityService>();
             unityService.GetKey(KeyCode.W).Returns(true);
 

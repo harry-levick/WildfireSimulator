@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Assets.Scripts.Models
+namespace Assets.Scripts.Model
 {
     [Serializable]
-    public class WindModel
+    public class Wind
     {
         public float wind_deg;
         public float wind_speed;

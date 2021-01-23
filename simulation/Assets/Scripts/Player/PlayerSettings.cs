@@ -1,11 +1,11 @@
 ﻿using System;
-using Assets.Scripts.FireScripts;
+using Assets.Scripts.Fire;
 using UnityEngine;
 
-namespace Assets.Scripts.CameraScripts
+namespace Assets.Scripts.Player
 {
     [Serializable]
-    public class CameraSettings
+    public class PlayerSettings
     {
         [SerializeField]
         public float Speed;
@@ -16,7 +16,7 @@ namespace Assets.Scripts.CameraScripts
         [SerializeField] public FireController FireController;
 
 
-        public CameraSettings()
+        public PlayerSettings()
         {
             Speed = 6.0f;
             Sensitivity = 0.45f;

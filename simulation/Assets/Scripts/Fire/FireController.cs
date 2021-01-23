@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Assets.Scripts.FireScripts
+namespace Assets.Scripts.Fire
 {
     [Serializable]
     public class FireController

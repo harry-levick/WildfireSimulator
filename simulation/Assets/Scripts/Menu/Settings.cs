@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Scripts.Menus
+namespace Assets.Scripts.Menu
 {
-    public class SettingsMenu : MonoBehaviour
+    public class Settings : MonoBehaviour
     {
         public void OpenSettings()
         {

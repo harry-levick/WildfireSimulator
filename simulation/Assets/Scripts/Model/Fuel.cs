@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Assets.Scripts.Models
+namespace Assets.Scripts.Model
 {
     [Serializable]
-    public class FuelModel
+    public class Fuel
     {
         public string code;
         public int number;

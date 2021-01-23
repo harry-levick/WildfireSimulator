@@ -1,28 +1,28 @@
 ﻿using System.Collections.Generic;
-using Assets.Scripts.FireScripts;
-using Assets.Scripts.Menus;
+using Assets.Scripts.Fire;
+using Assets.Scripts.Menu;
 using Assets.Scripts.Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Assets.Scripts.CameraScripts
+namespace Assets.Scripts.Player
 {
-    public class CameraScript : MonoBehaviour
+    public class Player : MonoBehaviour
     {
-        private CameraAction _cameraAction = new CameraAction();
+        private PlayerAction _cameraAction = new PlayerAction();
         private Vector3 _north = Vector3.forward;
         private GameObject _mapObject;
         private Camera _camera;
         private Vector3 _anchorPoint;
         private Quaternion _anchorRot;
 
-        [SerializeField] public CameraSettings Settings = new CameraSettings();
+        [SerializeField] public PlayerSettings Settings = new PlayerSettings();
         public Button IgniteButton;
         public Button PauseButton;
         public IUnityService UnityService;
         public List<FireBehaviour> AllFires;
-        public GameMenu Menu;
+        public Game Menu;
     
         private void Awake()
         {
@@ -30,7 +30,7 @@ namespace Assets.Scripts.CameraScripts
             _mapObject = GameObject.Find("Map");
             UnityService = new UnityService();
             AllFires = new List<FireBehaviour>();
-            Menu = new GameMenu(ref AllFires, _cameraAction, IgniteButton, PauseButton);
+            Menu = new Game(ref AllFires, _cameraAction, IgniteButton, PauseButton);
         }
 
         // Update is called once per frame

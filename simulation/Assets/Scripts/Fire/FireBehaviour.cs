@@ -3,12 +3,12 @@ using System.Collections;
 using System.Globalization;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Assets.Scripts.Models;
+using Assets.Scripts.Model;
 using Mapbox.Unity.Map;
 using Mapbox.Utils;
 using UnityEngine;
 
-namespace Assets.Scripts.FireScripts
+namespace Assets.Scripts.Fire
 {
     public class FireBehaviour : MonoBehaviour
     {
@@ -151,7 +151,7 @@ namespace Assets.Scripts.FireScripts
         /// <returns></returns>
         private async Task<double> ZeroWindZeroSlopeRateOfSpreadInMetresPerMin(Vector3 point)
         {
-            FuelModel model = await FuelModelParameters(point);
+            Fuel model = await FuelModelParameters(point);
             double fuelMoisture = await FuelMoistureContent(point);
 
             double propFluxNoWindSlope = await PropagatingFluxNoWindSlope(point);
@@ -163,10 +163,10 @@ namespace Assets.Scripts.FireScripts
             return FeetToMetres(propFluxNoWindSlope / heatSink);
         }
 
-        private async Task<SpreadModel> RateOfMaximumSpreadInMetresPerMinute(Vector3 point)
+        private async Task<Spread> RateOfMaximumSpreadInMetresPerMinute(Vector3 point)
         {
-            WeatherModel weatherModel = await MidflameWindSpeed(point);
-            WindModel currentWind = weatherModel.current;
+            Weather weatherModel = await MidflameWindSpeed(point);
+            Wind currentWind = weatherModel.current;
 
             double r0 = await ZeroWindZeroSlopeRateOfSpreadInMetresPerMin(point);
             double slopeBearing = GetSlopeBearingInDegrees(GetHitInfo(point));
@@ -200,7 +200,7 @@ namespace Assets.Scripts.FireScripts
             }
             double Rh = r0 + (Dh / 1f); // t = 1
 
-            return new SpreadModel(Rh, a);
+            return new Spread(Rh, a);
         }
 
         #region Heat Sink
@@ -209,7 +209,7 @@ namespace Assets.Scripts.FireScripts
         /// <param name="Mf">moisture content</param>
         /// <param name="model">fuel model</param>
         /// <returns></returns>
-        private double HeatSink(double Mf, FuelModel model)
+        private double HeatSink(double Mf, Fuel model)
         {
             return model.mean_bulk_density *
                     EffectiveHeatingNumber(model) *
@@ -220,7 +220,7 @@ namespace Assets.Scripts.FireScripts
         /// </summary>
         /// <param name="sigma">surface-area-to-volume-ratio</param>
         /// <returns></returns>
-        private double EffectiveHeatingNumber(FuelModel model)
+        private double EffectiveHeatingNumber(Fuel model)
         {
             if (model.characteristic_sav == 0.0) { return 0.0; }
 
@@ -255,7 +255,7 @@ namespace Assets.Scripts.FireScripts
         /// <returns>no-wind, no-slope propagating flux</returns>
         private async Task<double> PropagatingFluxNoWindSlope(Vector3 point)
         {
-            FuelModel model = await FuelModelParameters(point);
+            Fuel model = await FuelModelParameters(point);
             return await ReactionIntensity(point) * PropagatingFluxRatio(model);
         }
 
@@ -266,14 +266,14 @@ namespace Assets.Scripts.FireScripts
         private async Task<double> ReactionIntensity(Vector3 point)
         {
             double Mf = await FuelMoistureContent(point);
-            FuelModel model = await FuelModelParameters(point);
+            Fuel model = await FuelModelParameters(point);
             double wn = NetFuelLoad(model.oven_dry_fuel_load);
             double nM = MoistureDampingCoefficient(Mf, model.dead_fuel_moisture_of_extinction);
             double g = NetFuelLoadWeightingFactor(model);
 
             return OptimumReactionVelocity(model) *
                     (wn * g) *
-                    FuelModel.heat_content *
+                    Fuel.heat_content *
                     nM *
                     MineralDampingCoefficient();
         }
@@ -282,7 +282,7 @@ namespace Assets.Scripts.FireScripts
         /// </summary>
         /// <param name="model">fuel model</param>
         /// <returns></returns>
-        private double OptimumReactionVelocity(FuelModel model)
+        private double OptimumReactionVelocity(Fuel model)
         {
             double A;
 
@@ -312,7 +312,7 @@ namespace Assets.Scripts.FireScripts
         /// </summary>
         /// <param name="model">fuel model</param>
         /// <returns></returns>
-        private double PropagatingFluxRatio(FuelModel model)
+        private double PropagatingFluxRatio(Fuel model)
         {
             double beta = MeanPackingRatio(model);
 
@@ -327,10 +327,10 @@ namespace Assets.Scripts.FireScripts
         /// <returns></returns>
         private double NetFuelLoad(double w0)
         {
-            return w0 * (1.0 - FuelModel.total_mineral_content);
+            return w0 * (1.0 - Fuel.total_mineral_content);
         }
 
-        private double NetFuelLoadWeightingFactor(FuelModel model)
+        private double NetFuelLoadWeightingFactor(Fuel model)
         {
             if (model.characteristic_sav < 16) { return 0.0; }
 
@@ -343,7 +343,7 @@ namespace Assets.Scripts.FireScripts
         /// <returns></returns>
         private double MineralDampingCoefficient()
         {
-            double coefficient = 0.174 * Math.Pow(FuelModel.effective_mineral_content, -0.19);
+            double coefficient = 0.174 * Math.Pow(Fuel.effective_mineral_content, -0.19);
             return Math.Min(coefficient, 1.0); // (max = 1)
         }
 
@@ -372,11 +372,11 @@ namespace Assets.Scripts.FireScripts
         /// </summary>
         /// <param name="model">fuel model</param>
         /// <returns></returns>
-        private double MeanPackingRatio(FuelModel model)
+        private double MeanPackingRatio(Fuel model)
         {
             if (model.fuel_bed_depth == 0.0 || model.oven_dry_fuel_load == 0.0) { return 0.0; }
 
-            return (1.0 / model.fuel_bed_depth) * (model.oven_dry_fuel_load / FuelModel.particle_density);
+            return (1.0 / model.fuel_bed_depth) * (model.oven_dry_fuel_load / Fuel.particle_density);
         }
 
         #endregion
@@ -400,7 +400,7 @@ namespace Assets.Scripts.FireScripts
         /// <returns></returns>
         private async Task<double> SlopeFactor(Vector3 point)
         {
-            FuelModel model = await FuelModelParameters(point);
+            Fuel model = await FuelModelParameters(point);
             RaycastHit hitInfo = GetHitInfo(point);
             double theta = GetSlopeInDegrees(hitInfo);
 
@@ -417,9 +417,9 @@ namespace Assets.Scripts.FireScripts
         /// <returns></returns>
         private async Task<double> WindFactor(Vector3 point)
         {
-            WeatherModel weatherModel = await MidflameWindSpeed(point);
+            Weather weatherModel = await MidflameWindSpeed(point);
             double currentWindSpeed = weatherModel.current.wind_speed;
-            FuelModel model = await FuelModelParameters(point);
+            Fuel model = await FuelModelParameters(point);
 
             if (model.relative_packing_ratio == 0f) { return 0f; }
 
@@ -445,7 +445,7 @@ namespace Assets.Scripts.FireScripts
             double effectiveWindFactor = WindFactor(point).GetAwaiter().GetResult() +
                                         SlopeFactor(point).GetAwaiter().GetResult();
 
-            FuelModel model = await FuelModelParameters(point);
+            Fuel model = await FuelModelParameters(point);
 
             double B = 0.025256 * Math.Pow(model.characteristic_sav, 0.54f);
             double E = 0.715 * Math.Exp(-3.59f * model.characteristic_sav * Math.Pow(10f, -4f));
@@ -547,7 +547,7 @@ namespace Assets.Scripts.FireScripts
             return Int32.Parse(modelNumber);
         }
 
-        async Task<FuelModel> FuelModelParameters(Vector3 point)
+        async Task<Fuel> FuelModelParameters(Vector3 point)
         {
             HttpResponseMessage response;
 
@@ -555,7 +555,7 @@ namespace Assets.Scripts.FireScripts
             response = client.GetAsync(string.Format(ModelParametersUrl, modelNumber)).Result;
             response.EnsureSuccessStatusCode();
 
-            return JsonUtility.FromJson<FuelModel>(await response.Content.ReadAsStringAsync());
+            return JsonUtility.FromJson<Fuel>(await response.Content.ReadAsStringAsync());
         }
 
         async Task<double> FuelMoistureContent(Vector3 point)
@@ -572,7 +572,7 @@ namespace Assets.Scripts.FireScripts
                 ) / 100; // divide by 100 to get percentage fuel moisture content.
         }
 
-        async Task<WeatherModel> MidflameWindSpeed(Vector3 point)
+        async Task<Weather> MidflameWindSpeed(Vector3 point)
         {
             HttpResponseMessage response;
             Vector2d latlon = Map.WorldToGeoPosition(point);
@@ -581,7 +581,7 @@ namespace Assets.Scripts.FireScripts
             response.EnsureSuccessStatusCode();
             string jsonString = await response.Content.ReadAsStringAsync();
 
-            var jObject = JsonUtility.FromJson<WeatherModel>(jsonString);
+            var jObject = JsonUtility.FromJson<Weather>(jsonString);
             return jObject;
         }
         #endregion
