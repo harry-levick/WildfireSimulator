@@ -5,8 +5,9 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Mapbox.Unity.Map;
 using Mapbox.Utils;
-using Player.Model;
+using Model;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Fire
 {
@@ -30,7 +31,7 @@ namespace Fire
         private Vector3 _ignitionPoint;
         private double _lengthWidthRatio;
         private double _eccentricity;
-        private double _headingFireRateOfSpread;
+        private double _headingFireRateOfSpreadMetresPerMin;
         private double _headingFireBearing;
         private double _backingFireRateOfSpread;
         private double _backingFireBearing;
@@ -47,43 +48,55 @@ namespace Fire
         {
             _ignitionPoint = ignitionPoint;
             _map = map;
-            Instantiate(_windArrow, _ignitionPoint, Quaternion.identity);
+            CreateWindArrow();
+        }
+
+        private void CreateWindArrow()
+        {
+            if (_ignitionPoint == null)
+                throw new Exception("Attempted to create wind arrow before ignition point defined.");
+
+            var weatherAtIgnition = MidflameWindSpeed(_ignitionPoint)
+                .GetAwaiter().GetResult();
+
+            var arrow = Instantiate(_windArrow, _ignitionPoint, Quaternion.identity);
+            var yAxis = new Vector3(0, 1, 0);
+            arrow.transform.Rotate(yAxis, weatherAtIgnition.current.wind_deg);
+            arrow.GetComponentInChildren<TextMesh>().text = $"{FeetToMetres(weatherAtIgnition.current.wind_speed).ToString()}m/s";
         }
 
         public bool CanBurn()
         {
-            return RateOfMaximumSpreadInMetresPerMinute(_ignitionPoint)
+            return RateOfMaximumSpreadInFeetPerMinute(_ignitionPoint)
                 .GetAwaiter()
                 .GetResult()
-                .spreadRate > 0.0;
+                .SpreadRateFeetPerMin > 0.0;
         }
 
         public void Ignite()
         {
-            var maxSpread = RateOfMaximumSpreadInMetresPerMinute(_ignitionPoint).GetAwaiter().GetResult();
-            _headingFireRateOfSpread = maxSpread.spreadRate;
-            _headingFireBearing = maxSpread.spreadBearing;
+            var maxSpread = RateOfMaximumSpreadInFeetPerMinute(_ignitionPoint).GetAwaiter().GetResult();
+            _headingFireRateOfSpreadMetresPerMin = FeetToMetres(maxSpread.SpreadRateFeetPerMin);
+            _headingFireBearing = maxSpread.SpreadBearing;
 
-            if (_headingFireRateOfSpread == 0.0) return; // can't start a fire here
+            if (_headingFireRateOfSpreadMetresPerMin == 0.0) return; // can't start a fire here
 
             _lengthWidthRatio = 1 + (0.25 * EffectiveMidflameWindSpeed(_ignitionPoint).GetAwaiter().GetResult());
             _eccentricity = Math.Pow((Math.Pow(_lengthWidthRatio, 2.0) - 1.0), 0.5) / _lengthWidthRatio;
 
-            _backingFireRateOfSpread = _headingFireRateOfSpread * ((1 - _eccentricity) / (1 + _eccentricity));
+            _backingFireRateOfSpread = _headingFireRateOfSpreadMetresPerMin * ((1 - _eccentricity) / (1 + _eccentricity));
             _backingFireBearing = ReverseBearing(_headingFireBearing);
 
             for (var angle = 0; angle <= 170; angle += 10)
             {
-                if (angle == 0) { _directions.Add(angle, _headingFireRateOfSpread); }
+                if (angle == 0) { _directions.Add(angle, _headingFireRateOfSpreadMetresPerMin); }
                 else
                 {
-                    var spreadRate = _headingFireRateOfSpread * ((1 - _eccentricity) / (1 - (_eccentricity * Math.Cos(DegreesToRadians(angle)))));
+                    var spreadRate = _headingFireRateOfSpreadMetresPerMin * ((1 - _eccentricity) / (1 - (_eccentricity * Math.Cos(DegreesToRadians(angle)))));
                     _directions.Add(angle, spreadRate);
                 }
             }
-
-            Debug.DrawRay(_ignitionPoint, Vector3.up * 200, Color.green, 1000f);
-
+            
             _active = true;
         }
 
@@ -158,7 +171,7 @@ namespace Fire
         /// </summary>
         /// <param name="point">the unity point in game space</param>
         /// <returns></returns>
-        private async Task<double> ZeroWindZeroSlopeRateOfSpreadInMetresPerMin(Vector3 point)
+        private async Task<double> ZeroWindZeroSlopeRateOfSpreadInFeetPerMin(Vector3 point)
         {
             var model = await FuelModelParameters(point);
             var fuelMoisture = await FuelMoistureContent(point);
@@ -169,17 +182,16 @@ namespace Fire
 
             if (propFluxNoWindSlope == 0 || heatSink == 0) { return 0; }
 
-            return FeetToMetres(propFluxNoWindSlope / heatSink);
+            return propFluxNoWindSlope / heatSink;
         }
 
-        private async Task<Spread> RateOfMaximumSpreadInMetresPerMinute(Vector3 point)
+        private async Task<Spread> RateOfMaximumSpreadInFeetPerMinute(Vector3 point)
         {
             var weatherModel = await MidflameWindSpeed(point);
-            var currentWind = weatherModel.current;
+            var windBearing = weatherModel.current.wind_deg;
 
-            var r0 = await ZeroWindZeroSlopeRateOfSpreadInMetresPerMin(point);
+            var r0 = await ZeroWindZeroSlopeRateOfSpreadInFeetPerMin(point);
             var slopeBearing = GetSlopeBearingInDegrees(GetHitInfo(point));
-            double windBearing = currentWind.wind_deg;
 
             /* for elapsed time t, the slope vector has magnitude Ds and direction 0.
              * The wind vector has magnitude Dw in direction w from the upslope.
@@ -193,7 +205,7 @@ namespace Fire
 
             var x = ds + (dw * Math.Cos(DegreesToRadians(w)));
             var y = dw * Math.Sin(DegreesToRadians(w));
-            var dh = (double) Math.Pow(Math.Pow(x, 2f) + Math.Pow(y, 2f), 0.5f);
+            var dh = Math.Pow(Math.Pow(x, 2f) + Math.Pow(y, 2f), 0.5f);
 
             double a;
             if (y == 0f || dh == 0f) { a = 0f; }
@@ -215,21 +227,21 @@ namespace Fire
         #region Heat Sink
         /// <summary>
         /// </summary>
-        /// <param name="Mf">moisture content</param>
+        /// <param name="mf">moisture content</param>
         /// <param name="model">fuel model</param>
         /// <returns></returns>
-        private double HeatSink(double Mf, Fuel model)
+        private static double HeatSink(double mf, Fuel model)
         {
             return model.mean_bulk_density *
                     EffectiveHeatingNumber(model) *
-                    HeatOfPreignition(Mf);
+                    HeatOfPreignition(mf);
         }
 
         /// <summary>
         /// </summary>
         /// <param name="sigma">surface-area-to-volume-ratio</param>
         /// <returns></returns>
-        private double EffectiveHeatingNumber(Fuel model)
+        private static double EffectiveHeatingNumber(Fuel model)
         {
             return model.characteristic_sav == 0.0 ? 0.0 : Math.Exp(- 138 / model.characteristic_sav);
         }
@@ -419,7 +431,7 @@ namespace Fire
         private async Task<double> WindFactor(Vector3 point)
         {
             var weatherModel = await MidflameWindSpeed(point);
-            double currentWindSpeed = weatherModel.current.wind_speed;
+            var currentWindSpeed = weatherModel.current.wind_speed;
             var model = await FuelModelParameters(point);
 
             if (model.relative_packing_ratio == 0f) { return 0f; }
@@ -519,7 +531,7 @@ namespace Fire
             return (180f / Math.PI) * rad;
         }
 
-        private double FeetToMetres(double feet) => 0.3048 * feet;
+        private static double FeetToMetres(double feet) => 0.3048 * feet;
 
         private double ReverseBearing(double forward)
         {
@@ -536,22 +548,20 @@ namespace Fire
         #endregion
 
         #region api calls
-        async Task<int> FuelModelNumber(Vector3 point)
-        {
-            HttpResponseMessage response;
 
+        private async Task<int> FuelModelNumber(Vector3 point)
+        {
             var latlon = _map.WorldToGeoPosition(point);
 
-            response = Client.GetAsync(string.Format(ModelNumberUrl, latlon.x, latlon.y)).Result;
+            var response = Client.GetAsync(string.Format(ModelNumberUrl, latlon.x, latlon.y)).Result;
             response.EnsureSuccessStatusCode();
             var modelNumber = await response.Content.ReadAsStringAsync();
             return int.Parse(modelNumber);
         }
 
-        async Task<Fuel> FuelModelParameters(Vector3 point)
+        private async Task<Fuel> FuelModelParameters(Vector3 point)
         {
             HttpResponseMessage response;
-
             var modelNumber = await FuelModelNumber(point);
             response = Client.GetAsync(string.Format(ModelParametersUrl, modelNumber)).Result;
             response.EnsureSuccessStatusCode();
@@ -559,7 +569,7 @@ namespace Fire
             return JsonUtility.FromJson<Fuel>(await response.Content.ReadAsStringAsync());
         }
 
-        async Task<double> FuelMoistureContent(Vector3 point)
+        private async Task<double> FuelMoistureContent(Vector3 point)
         {
             HttpResponseMessage response;
             var latlon = _map.WorldToGeoPosition(point);
@@ -573,7 +583,7 @@ namespace Fire
                 ) / 100; // divide by 100 to get percentage fuel moisture content.
         }
 
-        async Task<Weather> MidflameWindSpeed(Vector3 point)
+        private async Task<Weather> MidflameWindSpeed(Vector3 point)
         {
             HttpResponseMessage response;
             var latlon = _map.WorldToGeoPosition(point);
