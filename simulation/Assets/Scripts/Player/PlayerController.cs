@@ -23,12 +23,11 @@ namespace Player
         public Hud hudMenu;
         public Settings settingsMenu;
         public new Camera camera;
-        public AbstractMap map;
+        public GameObject map;
         
         private void Awake()
         {
             _mousePressed = false;
-            camera = GetComponent<Camera>();
             UnityService = new UnityService();
         }
 
@@ -106,6 +105,7 @@ namespace Player
             if (!Physics.Raycast(ray, out var hitInfo, Mathf.Infinity)) return;
                 
             CreateFire(hitInfo.point);
+            _mousePressed = false;
         }
 
         private bool CanIgnite()
@@ -125,7 +125,8 @@ namespace Player
 
         private void CreateFire(Vector3 ignitionPoint)
         {
-            var fire = new FireBehaviour(map, ignitionPoint);
+            var fire = new GameObject().AddComponent<FireBehaviour>();
+            fire.Initialise(ignitionPoint, FindObjectOfType<AbstractMap>());
             if (!fire.CanBurn()) return;
             
             _allFires.Add(fire);

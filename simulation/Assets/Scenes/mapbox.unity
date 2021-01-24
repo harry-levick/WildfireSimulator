@@ -127,18 +127,6 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 530877634}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &26739569 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 114478715909612932, guid: e6b749c6d877f4c19a5a5c3c0783d53b,
-    type: 3}
-  m_PrefabInstance: {fileID: 530877634}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 26739568}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd961b1c9541a4cee99686069ecce852, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!154 &26739571
 TerrainCollider:
   m_ObjectHideFlags: 0
@@ -1188,6 +1176,7 @@ MonoBehaviour:
   ignite: {fileID: 437524327}
   pause: {fileID: 2067273951}
   settings: {fileID: 1321200510}
+  playerController: {fileID: 1809905018}
 --- !u!1 &1701503148
 GameObject:
   m_ObjectHideFlags: 0
@@ -1368,7 +1357,7 @@ MonoBehaviour:
   hudMenu: {fileID: 1575399188}
   settingsMenu: {fileID: 508023582}
   camera: {fileID: 1809905016}
-  map: {fileID: 26739569}
+  map: {fileID: 26739568}
 --- !u!1 &1818368714
 GameObject:
   m_ObjectHideFlags: 0

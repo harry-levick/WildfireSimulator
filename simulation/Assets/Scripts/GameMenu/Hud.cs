@@ -13,13 +13,8 @@ namespace GameMenu
         private bool _pauseClicked;
         
         public bool IgniteClicked { get; set; }
-        private PlayerController _playerController;
-
-        private void Awake()
-        {
-            _playerController = GetComponent<PlayerController>();
-        }
-
+        public PlayerController playerController;
+        
         public void ToggleIgniting()
         {
             IgniteClicked = !IgniteClicked;
@@ -37,7 +32,7 @@ namespace GameMenu
             pause.GetComponentInChildren<Text>().text =
                 MenuConstants.GetPausedButtonText(_pauseClicked);
 
-            _playerController.PauseAllFires(_pauseClicked);
+            playerController.PauseAllFires(_pauseClicked);
         }
 
         public void SetInteractable(bool interactable)
