@@ -2,7 +2,7 @@
 using Fire;
 using GameMenu;
 using Mapbox.Unity.Map;
-using Player.Services;
+using Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
 

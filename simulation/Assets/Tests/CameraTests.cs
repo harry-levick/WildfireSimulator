@@ -4,7 +4,7 @@ using NSubstitute;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using Player.Services;
+using Services;
 
 namespace Tests
 {
