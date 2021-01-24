@@ -1,16 +1,16 @@
 ﻿using System;
 
-namespace Player.Model
+namespace Model
 {
     public class Spread
     {
-        public double spreadRate; // the rate of spread in ft/min
-        public double spreadBearing; // the direction of spread as a bearing.
+        public readonly double SpreadRateFeetPerMin; // the rate of spread in ft/min
+        public readonly double SpreadBearing; // the direction of spread as a bearing.
 
-        public Spread(double rate, double bearing)
+        public Spread(double rateFeetPerMin, double bearing)
         {
-            spreadRate = rate;
-            spreadBearing = bearing;
+            SpreadRateFeetPerMin = rateFeetPerMin;
+            SpreadBearing = bearing;
         }
     }
 }

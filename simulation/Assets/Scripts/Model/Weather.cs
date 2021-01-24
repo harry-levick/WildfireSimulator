@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Player.Model
+namespace Model
 {
     [Serializable]
     public class Weather
