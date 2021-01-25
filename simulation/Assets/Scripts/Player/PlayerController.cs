@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 using Fire;
 using GameMenu;
 using Mapbox.Unity.Map;
@@ -119,18 +121,30 @@ namespace Player
 
             _allFiresPaused = pause;
 
+            /*
             if (_allFiresPaused) _allFires.ForEach(fire => fire.Pause());
             else _allFires.ForEach(fire => fire.Play());
+             */
         }
 
         private void CreateFire(Vector3 ignitionPoint)
         {
             var fire = new GameObject().AddComponent<FireBehaviour>();
-            fire.Initialise(ignitionPoint, FindObjectOfType<AbstractMap>());
-            if (!fire.CanBurn()) return;
-            
-            _allFires.Add(fire);
-            fire.Ignite();
+            try
+            {
+                fire.Initialise(ignitionPoint, FindObjectOfType<AbstractMap>());
+                _allFires.Add(fire);
+            }
+            catch (Exception e)
+            {
+                // ignored - cant start fire here
+                print(e.Message);
+            }
+        }
+
+        public void Increment()
+        {
+            _allFires.ForEach(fire => fire.Increment());
         }
 
 

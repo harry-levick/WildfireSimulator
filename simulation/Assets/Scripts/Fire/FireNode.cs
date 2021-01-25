@@ -13,15 +13,19 @@ namespace Fire
         private readonly AbstractMap _map;
         private readonly FireNode _parent;
         private readonly List<FireNode> _children;
+        private readonly List<FireNode> _newChildren;
         private readonly int _nodeSizeMetres; // the length/width of the node in the grid in metres
         private readonly Dictionary<Vector3, double> _minutesUntilSpread; // minutes until fire spreads to next node
+        private Dictionary<Vector2, bool> _visitedNodes;
         private bool _isBurning;
         private int _timeBurning;
         private int _counter;
 
-        public FireNode(FireNode parent, AbstractMap map, Vector3 center, int size)
+        public FireNode(FireNode parent, AbstractMap map, Vector3 center, int size, ref Dictionary<Vector2, bool> visited)
         {
             _children = new List<FireNode>();
+            _newChildren = new List<FireNode>();
+            _visitedNodes = visited;
             _parent = parent;
             _map = map;
             _nodeSizeMetres = size;
@@ -40,17 +44,28 @@ namespace Fire
         public void UpdateTime()
         {
             // update node
-            _counter += 1;
-            UpdateSpreadCounter();
+            if (_isBurning)
+            {
+                _counter += 1;
+                UpdateSpreadCounter();
+            }
             
             // update children
             _children.ForEach(child => child.UpdateTime());
+            // update the children with the new batch of children
+            _children.AddRange(_newChildren);
+            _newChildren.Clear();
         }
 
         private void UpdateSpreadCounter()
         {
-            var keys = _minutesUntilSpread.Keys.ToList();
-            foreach (var key in keys.Where(key => _minutesUntilSpread[key] > 0.0))
+            var keys = _minutesUntilSpread.Keys
+                                                            .ToList()
+                                                            .Where(key => _minutesUntilSpread[key] > 0.0);
+
+            _isBurning = keys.Any();
+            
+            foreach (var key in keys)
             {
                 _minutesUntilSpread[key] -= 1.0;
                 
@@ -59,10 +74,12 @@ namespace Fire
                 // spread in direction
                 var newNodeCenter = CalculateAdjacentCenter(key, Center);
                 
-                // don't revisit parent
-                if (_parent == null || !newNodeCenter.Equals(_parent.Center)) {
-                    _children.Add(new FireNode(this, _map, newNodeCenter, _nodeSizeMetres));
-                }
+                var nodeIn2d = new Vector2(newNodeCenter.x, newNodeCenter.z);
+                if (_visitedNodes.ContainsKey(nodeIn2d)) continue; // don't revisit node
+                
+                _newChildren.Add(new FireNode(this, _map, newNodeCenter, 
+                    _nodeSizeMetres, ref _visitedNodes));
+                _visitedNodes.Add(nodeIn2d, true);
             }
         }
 

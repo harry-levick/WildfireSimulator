@@ -1,6 +1,7 @@
 ﻿using Mapbox.Unity.Map;
 using Services;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Fire
@@ -12,11 +13,13 @@ namespace Fire
         private GameObject _windArrow;
         private RothermelService _rothermelService;
         private FireNode _fire;
-        private const int FireNodeSizeMetres = 10;
+        private const int FireNodeSizeMetres = 100;
+        private Dictionary<Vector2, bool> _visitedNodes;
 
         private void Awake()
         {
             _windArrow = Resources.Load("Prefabs/WindArrow") as GameObject;
+            _visitedNodes = new Dictionary<Vector2, bool>();
         }
 
         public void Initialise(Vector3 ignitionPoint, AbstractMap map)
@@ -24,8 +27,9 @@ namespace Fire
             _rothermelService = new RothermelService(map);
             CreateWindArrow(ignitionPoint);
 
-            if (CanBurn(ignitionPoint)) _fire = new FireNode(null, map, ignitionPoint, FireNodeSizeMetres);
-            else print("Cannot start fire here.");
+            if (CanBurn(ignitionPoint)) _fire = 
+                new FireNode(null, map, ignitionPoint, FireNodeSizeMetres, ref _visitedNodes);
+            else throw new Exception("Can't burn fire here.");
         }
 
         private void CreateWindArrow(Vector3 point)
@@ -44,9 +48,15 @@ namespace Fire
 
         public bool CanBurn(Vector3 point)
         {
-            return _rothermelService.RateOfMaximumSpreadInFeetPerMinute(point)
-                .GetAwaiter()
-                .GetResult()
+            var wind = _rothermelService.MidflameWindSpeed(point)
+                .GetAwaiter().GetResult();
+            var model = _rothermelService.FuelModelParameters(point)
+                .GetAwaiter().GetResult();
+            var moistureContent = _rothermelService.FuelMoistureContent(point)
+                .GetAwaiter().GetResult();
+            
+            return 
+                _rothermelService.RateOfMaximumSpreadInFeetPerMinute(point, wind.current, model, moistureContent)
                 .SpreadRateFeetPerMin > 0.0;
         }
 
