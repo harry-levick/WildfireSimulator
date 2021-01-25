@@ -48,11 +48,18 @@ namespace Services
             };
 
             var spread = new Dictionary<Vector3, double>();
+
+            var rothermelFuelModel = FuelModelParameters(point)
+                .GetAwaiter().GetResult();
+            var midflameWindSpeed = MidflameWindSpeed(point)
+                .GetAwaiter().GetResult();
+            var fuelMoistureContent = FuelMoistureContent(point)
+                .GetAwaiter().GetResult();
             
-            var maxSpread = RateOfMaximumSpreadInFeetPerMinute(point)
-                .GetAwaiter().GetResult();
-            var windSpeed = EffectiveMidflameWindSpeed(point)
-                .GetAwaiter().GetResult();
+            var maxSpread = RateOfMaximumSpreadInFeetPerMinute(point, midflameWindSpeed.current, 
+                    rothermelFuelModel, fuelMoistureContent);
+            var windSpeed = EffectiveMidflameWindSpeed(point, midflameWindSpeed.current, 
+                    rothermelFuelModel, fuelMoistureContent);
 
             var lengthWidthRatio = 1 + (0.25 * windSpeed);
             var eccentricity = Math.Pow(Math.Pow(lengthWidthRatio, 2.0) - 1.0, 0.5) / lengthWidthRatio;
@@ -69,12 +76,11 @@ namespace Services
             return spread;
         }
         
-        public async Task<Spread> RateOfMaximumSpreadInFeetPerMinute(Vector3 point)
+        public Spread RateOfMaximumSpreadInFeetPerMinute(Vector3 point, Wind midflameWindSpeed, Fuel model, double fuelMoistureContent)
         {
-            var weatherModel = await MidflameWindSpeed(point);
-            var windBearing = weatherModel.current.wind_deg;
-
-            var r0 = await ZeroWindZeroSlopeRateOfSpreadInFeetPerMin(point);
+            var windBearing = midflameWindSpeed.wind_deg;
+            
+            var r0 = ZeroWindZeroSlopeRateOfSpreadInFeetPerMin(point, fuelMoistureContent, model);
             var slopeBearing = GetSlopeBearingInDegrees(GetHitInfo(point));
 
             /* for elapsed time t, the slope vector has magnitude Ds and direction 0.
@@ -83,8 +89,8 @@ namespace Services
              * The resultant vector is then (Ds + Dwcosw, Dwsinw). 
              * The magnitude of the head fire vector is Dh in direction a.
              */
-            var ds = r0 * await SlopeFactor(point);
-            var dw = r0 * await WindFactor(point);
+            var ds = r0 * SlopeFactor(point, model);
+            var dw = r0 * WindFactor(point, midflameWindSpeed.wind_speed, model, fuelMoistureContent);
             var w = Math.Abs(slopeBearing - windBearing);
 
             var x = ds + (dw * Math.Cos(DegreesToRadians(w)));
@@ -107,21 +113,21 @@ namespace Services
 
             return new Spread(rh, a);
         }
-        
-        
+
+
         /// <summary>
         /// Returns the rate of spread of fire in ft/min given no wind or slope.
         /// </summary>
         /// <param name="point">the unity point in game space</param>
+        /// <param name="fuelMoistureContent"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
-        private async Task<double> ZeroWindZeroSlopeRateOfSpreadInFeetPerMin(Vector3 point)
+        private double ZeroWindZeroSlopeRateOfSpreadInFeetPerMin(Vector3 point, 
+            double fuelMoistureContent, Fuel model)
         {
-            var model = await FuelModelParameters(point);
-            var fuelMoisture = await FuelMoistureContent(point);
+            var propFluxNoWindSlope = PropagatingFluxNoWindSlope(point, fuelMoistureContent, model);
 
-            var propFluxNoWindSlope = await PropagatingFluxNoWindSlope(point);
-
-            var heatSink = HeatSink(fuelMoisture, model);
+            var heatSink = HeatSink(fuelMoistureContent, model);
 
             if (propFluxNoWindSlope == 0 || heatSink == 0) { return 0; }
 
@@ -157,38 +163,28 @@ namespace Services
         {
             return 250 + (1116 * mf);
         }
-        
-        /// <summary>
-        /// </summary>
-        /// <param name="point"></param>
-        /// <returns></returns>
-        private async Task<double> HeatSource(Vector3 point)
-        {
-            var propFlux = await PropagatingFluxNoWindSlope(point);
 
-            return propFlux * (1f + await SlopeFactor(point) + await WindFactor(point));
-        }
-        
         /// <summary>
         /// </summary>
         /// <param name="point"></param>
+        /// <param name="fuelMoistureContent"></param>
+        /// <param name="model"></param>
         /// <returns>no-wind, no-slope propagating flux</returns>
-        private async Task<double> PropagatingFluxNoWindSlope(Vector3 point)
+        private double PropagatingFluxNoWindSlope(Vector3 point, double fuelMoistureContent, Fuel model)
         {
-            var model = await FuelModelParameters(point);
-            return await ReactionIntensity(point) * PropagatingFluxRatio(model);
+            return ReactionIntensity(point, fuelMoistureContent, model) * PropagatingFluxRatio(model);
         }
-        
+
         /// <summary>
         /// </summary>
         /// <param name="point"></param>
+        /// <param name="fuelMoistureContent"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
-        private async Task<double> ReactionIntensity(Vector3 point)
+        private static double ReactionIntensity(Vector3 point, double fuelMoistureContent, Fuel model)
         {
-            var mf = await FuelMoistureContent(point);
-            var model = await FuelModelParameters(point);
             var wn = NetFuelLoad(model.oven_dry_fuel_load);
-            var nM = MoistureDampingCoefficient(mf, model.dead_fuel_moisture_of_extinction);
+            var nM = MoistureDampingCoefficient(fuelMoistureContent, model.dead_fuel_moisture_of_extinction);
             var g = NetFuelLoadWeightingFactor(model);
 
             return OptimumReactionVelocity(model) *
@@ -303,14 +299,14 @@ namespace Services
         {
             return 0.9 * iR;
         }
-        
+
         /// <summary>
         /// </summary>
         /// <param name="point">the point in space to find the slope factor</param>
+        /// <param name="model"></param>
         /// <returns></returns>
-        private async Task<double> SlopeFactor(Vector3 point)
+        private double SlopeFactor(Vector3 point, Fuel model)
         {
-            var model = await FuelModelParameters(point);
             var hitInfo = GetHitInfo(point);
             var theta = GetSlopeInDegrees(hitInfo);
 
@@ -319,18 +315,17 @@ namespace Services
 
             return slopeFactor;
         }
-        
+
         /// <summary>
         /// phi_w
         /// </summary>
         /// <param name="point"></param>
+        /// <param name="windSpeed"></param>
+        /// <param name="model"></param>
+        /// <param name="fuelMoistureContent"></param>
         /// <returns></returns>
-        private async Task<double> WindFactor(Vector3 point)
+        private static double WindFactor(Vector3 point, float windSpeed, Fuel model, double fuelMoistureContent)
         {
-            var weatherModel = await MidflameWindSpeed(point);
-            var currentWindSpeed = weatherModel.current.wind_speed;
-            var model = await FuelModelParameters(point);
-
             if (model.relative_packing_ratio == 0f) { return 0f; }
 
             var c = 7.47 * Math.Exp(-0.133 * Math.Pow(model.characteristic_sav, 0.55));
@@ -338,25 +333,28 @@ namespace Services
             var e = 0.715 * Math.Exp(-3.59 * model.characteristic_sav * Math.Pow(10, -4));
             var u =
                 Math.Min(
-                    MaximumReliableWindSpeed(await ReactionIntensity(point)),
-                    currentWindSpeed
+                    MaximumReliableWindSpeed(ReactionIntensity(point, fuelMoistureContent, model)),
+                    windSpeed
                 );
 
             return (c * Math.Pow(u, b) * Math.Pow(model.relative_packing_ratio, -e));
         }
-        
+
         /// <summary>
         /// U_E
         /// </summary>
         /// <param name="point"></param>
+        /// <param name="midflameWindSpeed"></param>
+        /// <param name="model"></param>
+        /// <param name="fuelMoistureContent"></param>
         /// <returns></returns>
-        public async Task<double> EffectiveMidflameWindSpeed(Vector3 point)
+        private double EffectiveMidflameWindSpeed(Vector3 point, Wind midflameWindSpeed, 
+            Fuel model, double fuelMoistureContent)
         {
-            var effectiveWindFactor = WindFactor(point).GetAwaiter().GetResult() +
-                                      SlopeFactor(point).GetAwaiter().GetResult();
-
-            var model = await FuelModelParameters(point);
-
+            var effectiveWindFactor = 
+                WindFactor(point, midflameWindSpeed.wind_speed, model, fuelMoistureContent) + 
+                SlopeFactor(point, model);
+            
             var b = 0.025256 * Math.Pow(model.characteristic_sav, 0.54f);
             var e = 0.715 * Math.Exp(-3.59f * model.characteristic_sav * Math.Pow(10f, -4f));
             var c = 7.47 * Math.Exp(-0.133 * Math.Pow(model.characteristic_sav, 0.55));
@@ -444,7 +442,7 @@ namespace Services
             return int.Parse(modelNumber);
         }
         
-        private async Task<Fuel> FuelModelParameters(Vector3 point)
+        public async Task<Fuel> FuelModelParameters(Vector3 point)
         {
             var modelNumber = await FuelModelNumber(point);
             var response = Client.GetAsync(string.Format(ModelParametersUrl, modelNumber)).Result;
@@ -453,7 +451,7 @@ namespace Services
             return JsonUtility.FromJson<Fuel>(await response.Content.ReadAsStringAsync());
         }
         
-        private async Task<double> FuelMoistureContent(Vector3 point)
+        public async Task<double> FuelMoistureContent(Vector3 point)
         {
             var latlon = _map.WorldToGeoPosition(point);
 
