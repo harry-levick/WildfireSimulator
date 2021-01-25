@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Constants;
 using Mapbox.Unity.Map;
 using Model;
 using UnityEngine;
+using static Constants.DirectionConstants;
 
 namespace Services
 {
@@ -12,7 +16,6 @@ namespace Services
     {
         private static readonly HttpClient Client = new HttpClient();
         private readonly AbstractMap _map;
-        private readonly Vector3 _north = new Vector3(0, 0, 1);
         private const string ModelNumberUrl =
             "http://127.0.0.1:5000/model-number?lat={0}&lon={1}";
         private const string ModelParametersUrl =
@@ -27,6 +30,45 @@ namespace Services
             _map = map;
         }
 
+        public Dictionary<Vector3, double> GetSpreadInCardinalDirectionsMetresPerMinute(Vector3 point)
+        {
+            return GetSpreadInCardinalDirectionsFeetPerMinute(point)
+                .ToDictionary(
+                    kp => kp.Key, 
+                    kp => FeetToMetres(kp.Value)
+                );
+        }
+
+        private Dictionary<Vector3, double> GetSpreadInCardinalDirectionsFeetPerMinute(Vector3 point)
+        {
+            var cardinals = new Dictionary<Vector3, double>()
+            {
+                { NORTH_VECTOR, NORTH_BEARING }, { SOUTH_VECTOR, SOUTH_BEARING }, 
+                { EAST_VECTOR, EAST_BEARING }, { WEST_VECTOR, WEST_BEARING }
+            };
+
+            var spread = new Dictionary<Vector3, double>();
+            
+            var maxSpread = RateOfMaximumSpreadInFeetPerMinute(point)
+                .GetAwaiter().GetResult();
+            var windSpeed = EffectiveMidflameWindSpeed(point)
+                .GetAwaiter().GetResult();
+
+            var lengthWidthRatio = 1 + (0.25 * windSpeed);
+            var eccentricity = Math.Pow(Math.Pow(lengthWidthRatio, 2.0) - 1.0, 0.5) / lengthWidthRatio;
+
+            foreach (var entry in cardinals)
+            {
+                var angle = Math.Abs(entry.Value - maxSpread.SpreadBearing);
+                var spreadRate = maxSpread.SpreadRateFeetPerMin *
+                                 ((1 - eccentricity) / (1 - eccentricity * Math.Cos(DegreesToRadians(angle))));
+                
+                spread[entry.Key] = spreadRate;
+            }
+
+            return spread;
+        }
+        
         public async Task<Spread> RateOfMaximumSpreadInFeetPerMinute(Vector3 point)
         {
             var weatherModel = await MidflameWindSpeed(point);
@@ -328,7 +370,7 @@ namespace Services
             return Vector3.Angle(normal, Vector3.up);
         }
         
-        private double GetSlopeBearingInDegrees(RaycastHit hitInfo)
+        private static double GetSlopeBearingInDegrees(RaycastHit hitInfo)
         {
             var normal = hitInfo.normal;
 
@@ -336,7 +378,7 @@ namespace Services
             var upslope = Vector3.Cross(normal, left);
             var upslopeFlat = new Vector3(upslope.x, 0, upslope.z).normalized;
 
-            return BearingBetweenInDegrees(_north, upslopeFlat);
+            return BearingBetweenInDegrees(DirectionConstants.NORTH_VECTOR, upslopeFlat);
         }
         
         private static double BearingBetweenInDegrees(Vector3 a, Vector3 b)
