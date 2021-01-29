@@ -1,68 +1,86 @@
 ﻿using Mapbox.Unity.Map;
+using Model;
 using Services;
 using System;
 using System.Collections.Generic;
+using External;
 using UnityEngine;
+using static Constants.StringConstants;
 
 namespace Fire
 {
     public class FireBehaviour : MonoBehaviour
     {
-        private bool _active = false;
-        private float _minutesPassed = 0;
-        private GameObject _windArrow;
-        private RothermelService _rothermelService;
-        private FireNode _fire;
-        private const int FireNodeSizeMetres = 100;
-        private Dictionary<Vector2, bool> _visitedNodes;
-
+        private bool _active;                             // fire currently burning
+        private int _minutesPassed;                       // number of minutes since the fire was started
+        private const int FireNodeSizeMetres = 100;       // the size of each node in metres
+        private FireNode _fire;                           // the root node in the fire
+        private RothermelService _rothermelService;       // service used for surface fire rate of spread calculations
+        private Dictionary<Vector2, bool> _visitedNodes;  // internal fire nodes in the tree
+        private List<FireNode> _perimeterNodes;           // root fire nodes in the tree
+        private WeatherProvider _weatherProvider;         // provider to fetch weather forecast
+        
         private void Awake()
         {
-            _windArrow = Resources.Load("Prefabs/WindArrow") as GameObject;
             _visitedNodes = new Dictionary<Vector2, bool>();
+            _perimeterNodes = new List<FireNode>();
+            _active = false;
+            _minutesPassed = 0;
         }
 
         public void Initialise(Vector3 ignitionPoint, AbstractMap map)
         {
             _rothermelService = new RothermelService(map);
-            CreateWindArrow(ignitionPoint);
+            _weatherProvider = new WeatherProvider();
 
-            if (CanBurn(ignitionPoint)) _fire = 
-                new FireNode(null, map, ignitionPoint, FireNodeSizeMetres, ref _visitedNodes);
-            else throw new Exception("Can't burn fire here.");
+            var latlon = _rothermelService.GetLatLonFromUnityCoords(ignitionPoint);
+            var weatherReport = _weatherProvider.GetWeatherReport(latlon)
+                .GetAwaiter().GetResult();
+            
+            CreateWindArrow(ignitionPoint, weatherReport);
+
+            _fire = new FireNode(null, _rothermelService, weatherReport, ignitionPoint, 
+                FireNodeSizeMetres, ref _visitedNodes);
+            
+            _perimeterNodes.Add(_fire);
+            _active = true;
         }
 
-        private void CreateWindArrow(Vector3 point)
+        public void AdvanceFire(int minutes)
+        {
+            var newPerimeterNodes = new List<FireNode>();
+            
+            foreach (var node in _perimeterNodes)
+            {
+                StartCoroutine(node.Update(minutes, returnVal =>
+                {
+                    newPerimeterNodes.AddRange(returnVal);
+                }));
+            }
+
+            _perimeterNodes = newPerimeterNodes;
+            _minutesPassed += minutes;
+        }
+        
+        public void PrintFireBoundary() =>
+            _perimeterNodes.ForEach(node => 
+                Debug.DrawRay(node.Center, Vector3.up * 100, Color.red, 1000f)
+                );
+
+        public void Stop() => _active = false;
+
+        private static void CreateWindArrow(Vector3 point, Weather weatherReport)
         {
             if (point == null)
                 throw new Exception("Attempted to create wind arrow before ignition point defined.");
-
-            var weatherAtIgnition = _rothermelService.MidflameWindSpeed(point)
-                .GetAwaiter().GetResult();
-
-            var arrow = Instantiate(_windArrow, point, Quaternion.identity);
-            var yAxis = new Vector3(0, 1, 0);
-            arrow.transform.Rotate(yAxis, weatherAtIgnition.current.wind_deg);
-            arrow.GetComponentInChildren<TextMesh>().text = $"{_rothermelService.FeetToMetres(weatherAtIgnition.current.wind_speed).ToString()}m/s";
-        }
-
-        public bool CanBurn(Vector3 point)
-        {
-            var wind = _rothermelService.MidflameWindSpeed(point)
-                .GetAwaiter().GetResult();
-            var model = _rothermelService.FuelModelParameters(point)
-                .GetAwaiter().GetResult();
-            var moistureContent = _rothermelService.FuelMoistureContent(point)
-                .GetAwaiter().GetResult();
             
-            return 
-                _rothermelService.RateOfMaximumSpreadInFeetPerMinute(point, wind.current, model, moistureContent)
-                .SpreadRateFeetPerMin > 0.0;
-        }
-
-        public void Increment()
-        {
-            _fire.UpdateTime();
+            var windArrow = Resources.Load(WindArrowPrefab) as GameObject;
+            var arrow = Instantiate(windArrow, point, Quaternion.identity);
+            
+            var yAxis = new Vector3(0, 1, 0);
+            arrow.transform.Rotate(yAxis, weatherReport.current.wind_deg);
+            arrow.GetComponentInChildren<TextMesh>().text = 
+                $"{weatherReport.current.WindSpeedMetresPerSecond.ToString()}m/s";
         }
     }
 }
