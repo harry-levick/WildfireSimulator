@@ -719,7 +719,7 @@ PrefabInstance:
     - target: {fileID: 114478715909612932, guid: e6b749c6d877f4c19a5a5c3c0783d53b,
         type: 3}
       propertyPath: _options.locationOptions.latitudeLongitude
-      value: 37.0416, -122.1505
+      value: 34.088, -118.949
       objectReference: {fileID: 0}
     - target: {fileID: 114478715909612932, guid: e6b749c6d877f4c19a5a5c3c0783d53b,
         type: 3}
@@ -920,7 +920,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: + 1 minute
+  m_Text: '>> 30 min'
 --- !u!222 &1104831778
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1255,6 +1255,7 @@ MonoBehaviour:
   ignite: {fileID: 437524327}
   pause: {fileID: 2067273951}
   settings: {fileID: 1321200510}
+  next30Min: {fileID: 2044217201}
   playerController: {fileID: 1809905018}
 --- !u!1 &1701503148
 GameObject:
@@ -1716,8 +1717,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1809905018}
-        m_MethodName: Increment
+      - m_Target: {fileID: 1575399188}
+        m_MethodName: Next30Min
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

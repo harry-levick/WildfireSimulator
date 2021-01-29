@@ -9,6 +9,7 @@ namespace GameMenu
         public Button ignite;
         public Button pause;
         public Button settings;
+        public Button next30Min;
 
         private bool _pauseClicked;
         
@@ -39,6 +40,11 @@ namespace GameMenu
         {
             ignite.interactable = interactable;
             pause.interactable = interactable;
+        }
+
+        public void Next30Min()
+        {
+            playerController.Increment(30);
         }
 
     }
