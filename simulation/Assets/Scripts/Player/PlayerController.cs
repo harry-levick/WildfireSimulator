@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
+using System.Diagnostics;
+using System.Linq;
 using Fire;
 using GameMenu;
 using Mapbox.Unity.Map;
+using Model;
 using Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Debug = UnityEngine.Debug;
 
 namespace Player
 {
@@ -25,17 +28,31 @@ namespace Player
         public Hud hudMenu;
         public Settings settingsMenu;
         public new Camera camera;
-        public GameObject map;
+        public AbstractMap map;
+        private int _counter;
         
         private void Awake()
         {
+            map = FindObjectOfType<AbstractMap>();
             _mousePressed = false;
             UnityService = new UnityService();
+            _counter = 0;
         }
 
         // Update is called once per frame
         private void Update()
         {
+            if (!_gamePaused)
+            {
+                if (_counter == 10)
+                {
+                    _allFires.ForEach(fire => fire.AdvanceFire(30));
+                    _counter = 0;
+                }
+                else _counter += 1;
+                
+                _allFires.ForEach(fire => fire.PrintFireBoundary());
+            }
             HandleLeftMouseButton();
             HandleRightMouseButton();
             HandleFireIgnition();
@@ -114,25 +131,15 @@ namespace Player
         {
             return _mousePressed && hudMenu.IgniteClicked;
         }
-        
-        public void PauseAllFires(bool pause)
-        {
-            if (_allFiresPaused == pause) return;
 
-            _allFiresPaused = pause;
-
-            /*
-            if (_allFiresPaused) _allFires.ForEach(fire => fire.Pause());
-            else _allFires.ForEach(fire => fire.Play());
-             */
-        }
+        public void PauseAllFires(bool pause) => _gamePaused = pause;
 
         private void CreateFire(Vector3 ignitionPoint)
         {
             var fire = new GameObject().AddComponent<FireBehaviour>();
             try
             {
-                fire.Initialise(ignitionPoint, FindObjectOfType<AbstractMap>());
+                fire.Initialise(ignitionPoint, map);
                 _allFires.Add(fire);
             }
             catch (Exception e)
@@ -142,9 +149,9 @@ namespace Player
             }
         }
 
-        public void Increment()
+        public void Increment(int minutes)
         {
-            _allFires.ForEach(fire => fire.Increment());
+            _allFires.ForEach(fire => fire.AdvanceFire(minutes));
         }
 
 
