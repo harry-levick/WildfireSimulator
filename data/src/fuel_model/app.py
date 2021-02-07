@@ -1,10 +1,12 @@
+import numpy as np
 import os.path
 import pathlib
 import pandas as pd
 import rasterio as rio
+from data.src.common.constants import *
 from flask import Flask, Response
 from flask import jsonify, request
-from data.src.common.constants import *
+from shapely.geometry import *
 
 app = Flask(__name__)
 
@@ -18,6 +20,8 @@ model_classes = pd.read_csv(scott_burgan_classes)
 model_classes_fuel_load = pd.read_csv(scott_burgan_class_fuel_load)
 model_classes_sav_ratio = pd.read_csv(scott_burgan_class_sav_ratio)
 
+control_lines = []
+
 
 @app.route('/model-number', methods=['GET'])
 def get_model_code() -> Response:
@@ -28,6 +32,11 @@ def get_model_code() -> Response:
     try:
         lat = float(request.args['lat'])
         lon = float(request.args['lon'])
+
+        point = Point(lat, lon)
+        if any(point.intersects(polygon) for polygon in control_lines):
+            non_burnable = 0
+            return jsonify(non_burnable), 200
 
         [value] = raster_dataset.sample([(lon, lat)])
 
@@ -40,6 +49,27 @@ def get_model_code() -> Response:
 
     except (KeyError, ValueError): # body not correctly formatted
         return Response(status=400)
+
+
+@app.route('/control-lines/<float:lat_min>&<float:lat_max>&<float:lon_min>&<float:lon_max>', methods=['PUT'])
+def put_control_line(lat_min: float, lat_max: float, lon_min: float, lon_max: float) -> Response:
+    """
+    takes the coordinate values of the rectangular control line
+    :param lat_min:
+    :param lat_max:
+    :param lon_min:
+    :param lon_max:
+    :return: inserts the new polygon into a list of control lines
+    """
+    try:
+        corners = [(lat_min, lon_min), (lat_min, lon_max), (lat_max, lon_min), (lat_max, lon_max)]
+        new_control_line = Polygon(corners)
+
+        control_lines.append(new_control_line)
+
+        return Response(status=200)
+    except:
+        return Response(status=500)
 
 
 @app.route('/model-parameters', methods=['GET'])
