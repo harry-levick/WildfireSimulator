@@ -1,6 +1,5 @@
 using External;
 using Mapbox.Utils;
-using Mapbox.Unity.Map;
 using Model;
 using System;
 using System.Collections;
@@ -9,11 +8,13 @@ using System.Linq;
 using Services;
 using UnityEngine;
 using static Constants.DirectionConstants;
+using static Constants.StringConstants;
 
 namespace Fire
 {
     public class FireNode
     {
+        public string FuelModelCode;
         private Dictionary<Vector2, bool> _visitedNodes;           // referenced list of all visited nodes
         private Dictionary<Vector3, double> _ratesOfSpread;        // the rate of spread at the current node in all 4 directions
         private int _timeBurning;                                  // the number of minutes that this node has been burning
@@ -57,6 +58,7 @@ namespace Fire
         {
             var model = _fuelModelProvider.GetFuelModelParameters(_latlon)
                 .GetAwaiter().GetResult();
+            FuelModelCode = model.code;
             var fuelMoisture = _fuelMoistureProvider.GetFuelMoistureContent(_latlon)
                 .GetAwaiter().GetResult();
             _ratesOfSpread = _rothermelService.GetSpreadInCardinalDirectionsMetresPerMinute(_center, 
@@ -90,8 +92,9 @@ namespace Fire
                     {
                         _distancesTravelled = {[direction] = remaining}
                     };
-
-                newNodes.Add(newNode);
+                // add node only if burnable
+                if (!NonBurnableCodes.Contains(newNode.FuelModelCode)) newNodes.Add(newNode);
+                
                 _visitedNodes.Add(nodeCenterIn2d, true);
 
                 yield return null;

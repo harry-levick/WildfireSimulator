@@ -8,5 +8,7 @@ namespace Services
         bool GetMouseButtonUp(int mouseButton);
         bool GetKey(KeyCode key);
         bool GetMouseButton(int mouseButton);
+
+        float GetMouseScrollDelta();
     }
 }

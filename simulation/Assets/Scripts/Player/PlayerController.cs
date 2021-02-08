@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+using External;
 using Fire;
 using GameMenu;
 using Mapbox.Unity.Map;
-using Model;
 using Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Debug = UnityEngine.Debug;
 
 namespace Player
 {
@@ -33,6 +30,8 @@ namespace Player
         
         private void Awake()
         {
+            FuelModelProvider.ClearControlLines(); // clear all control lines set on previous instances
+            
             map = FindObjectOfType<AbstractMap>();
             _mousePressed = false;
             UnityService = new UnityService();
@@ -58,6 +57,40 @@ namespace Player
             HandleFireIgnition();
 
             transform.Translate(CalculateMovement());
+
+            if (!hudMenu.holding) return;
+            
+            // Handle holding object logic
+            var ray = camera.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out var hitInfo, Mathf.Infinity))
+            {
+                hudMenu.holding.transform.position = hitInfo.point;
+            }
+                
+            var scrollDelta = UnityService.GetMouseScrollDelta();
+            var currentScale = hudMenu.holding.transform.localScale;
+                
+            if (scrollDelta != 0f)
+            {
+                if (UnityService.GetKey(KeyCode.LeftShift)) // rotate on shift scroll
+                {
+                    const float rotateDegrees = 90f;
+                    hudMenu.holding.transform.Rotate(Vector3.up, Mathf.Sign(scrollDelta) * rotateDegrees);
+                }
+                else // scale on scroll
+                {
+                    var scaleDelta = new Vector3(2 * scrollDelta, scrollDelta, 0);
+                    var resultScale = currentScale + scaleDelta;
+                    // only scale down to zero, don't invert
+                    if (resultScale.x >= 0 && resultScale.y >= 0) hudMenu.holding.transform.localScale = resultScale;
+                }
+            }
+                
+            if (UnityService.GetMouseButtonDown(0))
+            {
+                hudMenu.DropControlLine();
+            }
         }
         
         private void HandleLeftMouseButton()
