@@ -34,7 +34,7 @@ def get_model_code() -> Response:
         lon = float(request.args['lon'])
 
         point = Point(lat, lon)
-        if any(point.intersects(polygon) for polygon in control_lines):
+        if any(polygon.contains(point) for polygon in control_lines):
             non_burnable = 0
             return jsonify(non_burnable), 200
 
@@ -62,7 +62,7 @@ def put_control_line(lat_min: float, lat_max: float, lon_min: float, lon_max: fl
     :return: inserts the new polygon into a list of control lines
     """
     try:
-        corners = [(lat_min, lon_min), (lat_min, lon_max), (lat_max, lon_min), (lat_max, lon_max)]
+        corners = [(lat_min, lon_min), (lat_min, lon_max), (lat_max, lon_max), (lat_max, lon_min)]
         new_control_line = Polygon(corners)
 
         control_lines.append(new_control_line)
