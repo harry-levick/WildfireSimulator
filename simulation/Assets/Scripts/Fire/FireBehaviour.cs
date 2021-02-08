@@ -63,9 +63,7 @@ namespace Fire
         }
         
         public void PrintFireBoundary() =>
-            _perimeterNodes.ForEach(node => 
-                Debug.DrawRay(node.Center, Vector3.up * 100, Color.red, 1000f)
-                );
+            _perimeterNodes.ForEach(node => Debug.DrawRay(node.Center, Vector3.up * 100, Color.red, 1000f));
 
         public void Stop() => _active = false;
 
