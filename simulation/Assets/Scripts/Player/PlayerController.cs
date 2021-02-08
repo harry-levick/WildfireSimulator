@@ -33,6 +33,8 @@ namespace Player
         
         private void Awake()
         {
+            FuelModelProvider.ClearControlLines(); // clear all control lines set on previous instances
+            
             map = FindObjectOfType<AbstractMap>();
             _mousePressed = false;
             UnityService = new UnityService();

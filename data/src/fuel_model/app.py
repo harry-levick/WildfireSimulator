@@ -1,4 +1,4 @@
-import numpy as np
+import data.src.common.Converters as Converters
 import os.path
 import pathlib
 import pandas as pd
@@ -9,6 +9,7 @@ from flask import jsonify, request
 from shapely.geometry import *
 
 app = Flask(__name__)
+app.url_map.converters['float'] = Converters.FloatConverter
 
 scott_burgan_classified = os.path.join(pathlib.Path(__file__).parent.absolute(), 'data', FUEL_MODEL_CLASSIFIED)
 scott_burgan_classes = os.path.join(pathlib.Path(__file__).parent.absolute(), 'data', FUEL_MODEL_CLASSES)
@@ -70,6 +71,16 @@ def put_control_line(lat_min: float, lat_max: float, lon_min: float, lon_max: fl
         return Response(status=200)
     except:
         return Response(status=500)
+
+@app.route('/control-lines/clear', methods=['GET'])
+def clear_control_lines() -> Response:
+    """
+    Clears the list of control lines
+    :return:
+    """
+    control_lines.clear()
+
+    return Response(status=200)
 
 
 @app.route('/model-parameters', methods=['GET'])
