@@ -14,7 +14,6 @@ namespace Fire
 {
     public class FireNode
     {
-        public string FuelModelCode;
         private Dictionary<Vector2, bool> _visitedNodes;           // referenced list of all visited nodes
         private Dictionary<Vector3, double> _ratesOfSpread;        // the rate of spread at the current node in all 4 directions
         private int _timeBurning;                                  // the number of minutes that this node has been burning
@@ -35,7 +34,9 @@ namespace Fire
             get => CalculateYCoord(_center);
             private set => _center = value;
         }
-        
+
+        public bool Contained => _ratesOfSpread.Values.All(v => v == 0.0);
+
         public FireNode(FireNode parent, RothermelService rothermelService, Weather weatherReportAtIgnition,
             Vector3 center, int size, ref Dictionary<Vector2, bool> visited)
         {
@@ -58,7 +59,6 @@ namespace Fire
         {
             var model = _fuelModelProvider.GetFuelModelParameters(_latlon)
                 .GetAwaiter().GetResult();
-            FuelModelCode = model.code;
             var fuelMoisture = _fuelMoistureProvider.GetFuelMoistureContent(_latlon)
                 .GetAwaiter().GetResult();
             _ratesOfSpread = _rothermelService.GetSpreadInCardinalDirectionsMetresPerMinute(_center, 
@@ -76,7 +76,7 @@ namespace Fire
 
                 var travelled = _distancesTravelled[direction];
 
-                if (!(travelled >= _nodeSizeMetres)) continue;
+                if (travelled < _nodeSizeMetres) continue;
 
                 _ratesOfSpread.Remove(direction); // remove the key from the dict as we have already spread in this dir
                 var numLeaps = (int) Math.Floor(travelled / _nodeSizeMetres);
@@ -92,8 +92,8 @@ namespace Fire
                     {
                         _distancesTravelled = {[direction] = remaining}
                     };
-                // add node only if burnable
-                if (!NonBurnableCodes.Contains(newNode.FuelModelCode)) newNodes.Add(newNode);
+                
+                newNodes.Add(newNode);
                 
                 _visitedNodes.Add(nodeCenterIn2d, true);
 

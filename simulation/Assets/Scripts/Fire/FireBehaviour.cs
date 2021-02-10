@@ -3,6 +3,7 @@ using Model;
 using Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using External;
 using UnityEngine;
 using static Constants.StringConstants;
@@ -28,6 +29,8 @@ namespace Fire
             _minutesPassed = 0;
         }
 
+        public void Stop() => _active = false;
+        
         public void Initialise(Vector3 ignitionPoint, AbstractMap map)
         {
             _rothermelService = new RothermelService(map);
@@ -65,8 +68,15 @@ namespace Fire
         public void PrintFireBoundary() =>
             _perimeterNodes.ForEach(node => Debug.DrawRay(node.Center, Vector3.up * 100, Color.red, 1000f));
 
-        public void Stop() => _active = false;
+        private float ContainedPercentage()
+        {
+            if (!_perimeterNodes.Any()) return 0f;
+            var perimeterNodes = (float) _perimeterNodes.Count;
+            var containedPerimeterNodes = (float) _perimeterNodes.Sum(node => node.Contained ? 1 : 0);
 
+            return containedPerimeterNodes / perimeterNodes * 100;
+        }
+        
         private static void CreateWindArrow(Vector3 point, Weather weatherReport)
         {
             if (point == null)
