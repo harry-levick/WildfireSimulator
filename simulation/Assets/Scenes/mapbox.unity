@@ -127,6 +127,18 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 530877634}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &26739569 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 114478715909612932, guid: e6b749c6d877f4c19a5a5c3c0783d53b,
+    type: 3}
+  m_PrefabInstance: {fileID: 530877634}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 26739568}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd961b1c9541a4cee99686069ecce852, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!154 &26739571
 TerrainCollider:
   m_ObjectHideFlags: 0
@@ -1215,6 +1227,49 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1321200508}
   m_CullTransparentMesh: 0
+--- !u!1 &1409430299
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1409430301}
+  - component: {fileID: 1409430300}
+  m_Layer: 0
+  m_Name: Fire
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1409430300
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1409430299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e9cbf8be8714411a80bc2f84d904e34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1409430301
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1409430299}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3326.679, y: -6733.165, z: 4995.3555}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1555369014
 GameObject:
   m_ObjectHideFlags: 0
@@ -1645,10 +1700,11 @@ MonoBehaviour:
   settings:
     Speed: 6
     Sensitivity: 0.45
+  fire: {fileID: 1409430300}
   hudMenu: {fileID: 1575399188}
   settingsMenu: {fileID: 508023582}
   camera: {fileID: 1809905016}
-  map: {fileID: 0}
+  map: {fileID: 26739569}
 --- !u!1 &1818368714
 GameObject:
   m_ObjectHideFlags: 0
