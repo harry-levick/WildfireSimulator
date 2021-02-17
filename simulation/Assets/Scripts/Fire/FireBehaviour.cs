@@ -12,7 +12,6 @@ namespace Fire
 {
     public class FireBehaviour : MonoBehaviour
     {
-        private bool _active;                             // fire currently burning
         private int _minutesPassed;                       // number of minutes since the fire was started
         private const int FireNodeSizeMetres = 100;       // the size of each node in metres
         private FireNode _fire;                           // the root node in the fire
@@ -20,17 +19,18 @@ namespace Fire
         private Dictionary<Vector2, bool> _visitedNodes;  // internal fire nodes in the tree
         private List<FireNode> _perimeterNodes;           // root fire nodes in the tree
         private WeatherProvider _weatherProvider;         // provider to fetch weather forecast
-        
+        private GameObject _windArrow;                    // shows the wind speed and direction
+
+        public bool Active { get; private set; }
+
         private void Awake()
         {
             _visitedNodes = new Dictionary<Vector2, bool>();
             _perimeterNodes = new List<FireNode>();
-            _active = false;
+            Active = false;
             _minutesPassed = 0;
         }
 
-        public void Stop() => _active = false;
-        
         public void Initialise(Vector3 ignitionPoint, AbstractMap map)
         {
             _rothermelService = new RothermelService(map);
@@ -46,7 +46,16 @@ namespace Fire
                 FireNodeSizeMetres, ref _visitedNodes);
             
             _perimeterNodes.Add(_fire);
-            _active = true;
+            Active = true;
+        }
+
+        public void Reset()
+        {
+            Stop();
+            _minutesPassed = 0;
+            _fire = null;
+            _visitedNodes.Clear();
+            _perimeterNodes.Clear();
         }
 
         public void AdvanceFire(int minutes)
@@ -64,30 +73,34 @@ namespace Fire
             _perimeterNodes = newPerimeterNodes;
             _minutesPassed += minutes;
         }
-        
         public void PrintFireBoundary() =>
             _perimeterNodes.ForEach(node => Debug.DrawRay(node.Center, Vector3.up * 100, Color.red, 1000f));
 
-        private float ContainedPercentage()
+        public float ContainedPercentage()
         {
             if (!_perimeterNodes.Any()) return 0f;
-            var perimeterNodes = (float) _perimeterNodes.Count;
-            var containedPerimeterNodes = (float) _perimeterNodes.Sum(node => node.Contained ? 1 : 0);
 
-            return containedPerimeterNodes / perimeterNodes * 100;
+            var perimeterNodes = (float) _perimeterNodes.Count;
+            var containedNodes = (float) _perimeterNodes.Sum(node => node.Contained ? 1 : 0);
+
+            return containedNodes / perimeterNodes;
         }
         
-        private static void CreateWindArrow(Vector3 point, Weather weatherReport)
+        private void Stop() => Active = false;
+
+        private void CreateWindArrow(Vector3 point, Weather weatherReport)
         {
             if (point == null)
                 throw new Exception("Attempted to create wind arrow before ignition point defined.");
             
+            if (_windArrow) { _windArrow.Destroy(); }
+            
             var windArrow = Resources.Load(WindArrowPrefab) as GameObject;
-            var arrow = Instantiate(windArrow, point, Quaternion.identity);
+            _windArrow = Instantiate(windArrow, point, Quaternion.identity);
             
             var yAxis = new Vector3(0, 1, 0);
-            arrow.transform.Rotate(yAxis, weatherReport.current.wind_deg);
-            arrow.GetComponentInChildren<TextMesh>().text = 
+            _windArrow.transform.Rotate(yAxis, weatherReport.current.wind_deg);
+            _windArrow.GetComponentInChildren<TextMesh>().text = 
                 $"{weatherReport.current.WindSpeedMetresPerSecond.ToString()}m/s";
         }
     }

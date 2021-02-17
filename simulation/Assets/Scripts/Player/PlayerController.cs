@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using External;
 using Fire;
 using GameMenu;
@@ -15,12 +14,11 @@ namespace Player
         private Vector3 _anchorPoint;
         private Quaternion _anchorRot;
         private bool _mousePressed;
-        private List<FireBehaviour> _allFires = new List<FireBehaviour>();
         private bool _allFiresPaused;
         private bool _gamePaused;
 
-        [SerializeField] 
-        public PlayerSettings settings = new PlayerSettings();
+        [SerializeField] public PlayerSettings settings = new PlayerSettings();
+        [SerializeField] public FireBehaviour fire;
         public IUnityService UnityService;
         public Hud hudMenu;
         public Settings settingsMenu;
@@ -41,16 +39,15 @@ namespace Player
         // Update is called once per frame
         private void Update()
         {
-            if (!_gamePaused)
+            if (!_gamePaused && fire.Active)
             {
                 if (_counter == 10)
                 {
-                    _allFires.ForEach(fire => fire.AdvanceFire(30));
+                    fire.AdvanceFire(30);
                     _counter = 0;
+                    fire.PrintFireBoundary();
                 }
                 else _counter += 1;
-                
-                _allFires.ForEach(fire => fire.PrintFireBoundary());
             }
             HandleLeftMouseButton();
             HandleRightMouseButton();
@@ -169,11 +166,10 @@ namespace Player
 
         private void CreateFire(Vector3 ignitionPoint)
         {
-            var fire = new GameObject().AddComponent<FireBehaviour>();
             try
             {
+                fire.Reset();
                 fire.Initialise(ignitionPoint, map);
-                _allFires.Add(fire);
             }
             catch (Exception e)
             {
@@ -184,9 +180,7 @@ namespace Player
 
         public void Increment(int minutes)
         {
-            _allFires.ForEach(fire => fire.AdvanceFire(minutes));
+            fire.AdvanceFire(minutes);
         }
-
-
     }
 }

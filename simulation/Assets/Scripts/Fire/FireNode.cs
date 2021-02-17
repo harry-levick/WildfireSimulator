@@ -34,9 +34,7 @@ namespace Fire
             get => CalculateYCoord(_center);
             private set => _center = value;
         }
-
-        public bool Contained => _ratesOfSpread.Values.All(v => v == 0.0);
-
+        
         public FireNode(FireNode parent, RothermelService rothermelService, Weather weatherReportAtIgnition,
             Vector3 center, int size, ref Dictionary<Vector2, bool> visited)
         {
@@ -94,7 +92,6 @@ namespace Fire
                     };
                 
                 newNodes.Add(newNode);
-                
                 _visitedNodes.Add(nodeCenterIn2d, true);
 
                 yield return null;
@@ -110,6 +107,8 @@ namespace Fire
         {
             return thisCenter + (direction * (_nodeSizeMetres * leap));
         }
+
+        public bool Contained => _ratesOfSpread.Values.All(v => v == 0.0);
 
         private static Vector3 CalculateYCoord(Vector3 vec)
         {
