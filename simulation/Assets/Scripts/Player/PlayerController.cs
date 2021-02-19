@@ -45,7 +45,7 @@ namespace Player
             {
                 if (_counter == 10)
                 {
-                    fire.AdvanceFire(30);
+                    fire.AdvanceFire(100);
                     _counter = 0;
                     fire.PrintFireBoundary();
                 }
@@ -176,7 +176,7 @@ namespace Player
             catch (Exception e)
             {
                 // ignored - cant start fire here
-                print(e.Message);
+                print(e.StackTrace);
             }
         }
 
