@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using External;
 using Fire;
 using GameMenu;
+using Mapbox.Unity.Map;
 using Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -171,7 +173,7 @@ namespace Player
             catch (Exception e)
             {
                 // ignored - cant start fire here
-                print(e.Message);
+                print(e.StackTrace);
             }
         }
 

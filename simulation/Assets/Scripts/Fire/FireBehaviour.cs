@@ -35,17 +35,16 @@ namespace Fire
 
         public void Initialise(Vector3 ignitionPoint)
         {
-            IgnitionPoint = ignitionPoint;
             _rothermelService = new RothermelService(map);
             _weatherProvider = new WeatherProvider();
 
-            var latlon = _rothermelService.GetLatLonFromUnityCoords(IgnitionPoint);
+            var latlon = _rothermelService.GetLatLonFromUnityCoords(ignitionPoint);
             var weatherReport = _weatherProvider.GetWeatherReport(latlon)
                 .GetAwaiter().GetResult();
             
-            CreateWindArrow(IgnitionPoint, weatherReport);
+            CreateWindArrow(ignitionPoint, weatherReport);
 
-            _fire = new FireNode(null, _rothermelService, weatherReport, IgnitionPoint, 
+            _fire = new FireNode(null, _rothermelService, weatherReport, ignitionPoint, 
                 FireNodeSizeMetres, ref _visitedNodes);
             
             PerimeterNodes.Add(_fire);
@@ -76,6 +75,7 @@ namespace Fire
             PerimeterNodes = newPerimeterNodes;
             _minutesPassed += minutes;
         }
+        
         public void PrintFireBoundary() =>
             PerimeterNodes.ForEach(node => Debug.DrawRay(node.Center, Vector3.up * 100, Color.red, 1000f));
 
