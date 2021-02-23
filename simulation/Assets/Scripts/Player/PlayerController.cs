@@ -1,53 +1,64 @@
 ﻿using System;
-using System.Collections.Generic;
 using External;
 using Fire;
 using GameMenu;
-using Mapbox.Unity.Map;
 using Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using static Constants.ExceptionMessageConstants;
 
 namespace Player
 {
     public class PlayerController : MonoBehaviour
     {
+        [SerializeField] public FireBehaviour fire;
+        [SerializeField] public Hud hudMenu;
+        [SerializeField] public Settings settingsMenu;
+        [SerializeField] public new Camera camera;
+        public PlayerSettings settings = new PlayerSettings();
+        public IUnityService UnityService;
+        
         private Vector3 _anchorPoint;
         private Quaternion _anchorRot;
         private bool _mousePressed;
         private bool _allFiresPaused;
         private bool _gamePaused;
-
-        [SerializeField] public PlayerSettings settings = new PlayerSettings();
-        [SerializeField] public FireBehaviour fire;
-        public IUnityService UnityService;
-        public Hud hudMenu;
-        public Settings settingsMenu;
-        public new Camera camera;
         private int _counter;
-        
+
         private void Awake()
         {
-            FuelModelProvider.ClearControlLines(); // clear all control lines set on previous instances
+            if (!fire)
+            {
+                Debug.LogException(
+                    new MissingReferenceException(string.Format(MissingReferenceExceptionMessage, "FireBehaviour")));
+                Application.Quit();
+            } else if (!hudMenu)
+            {
+                Debug.LogException(
+                    new MissingReferenceException(string.Format(MissingReferenceExceptionMessage, "Hud Menu")));
+                Application.Quit();
+            } else if (!settingsMenu)
+            {
+                Debug.LogException(
+                    new MissingReferenceException(string.Format(MissingReferenceExceptionMessage, "Settings Menu")));
+                Application.Quit();
+            } else if (!camera)
+            {
+                Debug.LogException(
+                    new MissingReferenceException(string.Format(MissingReferenceExceptionMessage, "Camera")));
+                Application.Quit();
+            }
             
+            FuelModelProvider.ClearControlLines(); // clear all control lines set on previous instances
             _mousePressed = false;
             UnityService = new UnityService();
             _counter = 0;
         }
 
-        // Update is called once per frame
         private void Update()
         {
-            if (!_gamePaused && fire.Active)
-            {
-                if (_counter == 10)
-                {
-                    fire.AdvanceFire(30);
-                    _counter = 0;
-                    fire.PrintFireBoundary();
-                }
-                else _counter += 1;
-            }
+            if (_gamePaused && fire.Active) fire.Active = false;
+            
             HandleLeftMouseButton();
             HandleRightMouseButton();
             HandleFireIgnition();
