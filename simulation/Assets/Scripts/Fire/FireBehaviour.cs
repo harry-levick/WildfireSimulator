@@ -28,9 +28,6 @@ namespace Fire
         
         private void Awake()
         {
-            _visitedNodes = new Dictionary<Vector2, bool>();
-            _perimeterNodes = new List<FireNode>();
-            _perimeterPoints = new List<GameObject>();
             Active = false;
             _minutesPassed = 0;
             _perimeterPoint = Resources.Load(PerimeterPointPrefab) as GameObject;
@@ -39,14 +36,20 @@ namespace Fire
         public void Initialise(Vector3 point)
         {
             ignitionPoint = point;
-            _visitedNodes.Add(new Vector2(ignitionPoint.x, ignitionPoint.z), false);
+            _perimeterNodes = new List<FireNode>();
+            _perimeterPoints = new List<GameObject>();
+            _visitedNodes = new Dictionary<Vector2, bool>
+            {
+                {new Vector2(ignitionPoint.x, ignitionPoint.z), false}
+            };
+            
             _rothermelService = new RothermelService(map);
 
             var latlon = _rothermelService.GetLatLonFromUnityCoords(ignitionPoint);
             weatherReport = new WeatherProvider().GetWeatherReport(latlon)
                 .GetAwaiter().GetResult();
             
-            CreateWindArrow(ignitionPoint, weatherReport);
+            CreateWindArrow(weatherReport);
 
             _fire = new FireNode(null, _rothermelService, weatherReport, ignitionPoint, 
                 FireNodeSizeMetres, ref _visitedNodes);
@@ -60,10 +63,8 @@ namespace Fire
             Stop();
             _minutesPassed = 0;
             _fire = null;
-            _visitedNodes.Clear();
-            _perimeterNodes.Clear();
-            _perimeterPoints.ForEach(point => point.Destroy());
-            _perimeterPoints.Clear();
+            
+            _perimeterPoints?.ForEach(point => point.Destroy());
         }
 
         public void AdvanceFire(int minutes)
@@ -81,11 +82,6 @@ namespace Fire
             _perimeterNodes = newPerimeterNodes;
             _minutesPassed += minutes;
         }
-        /*
-         
-        public void PrintFireBoundary() =>
-            _perimeterNodes.ForEach(node => Debug.DrawRay(node.Center, Vector3.up * 100, Color.red, 1000f));
-         */
 
         public void PrintFireBoundary()
         {
@@ -98,15 +94,16 @@ namespace Fire
         
         private void Stop() => Active = false;
 
-        private void CreateWindArrow(Vector3 point, Weather weatherReport)
+        private void CreateWindArrow(Weather weatherReport)
         {
-            if (point == null)
+            if (ignitionPoint == null)
                 throw new Exception("Attempted to create wind arrow before ignition point defined.");
             
             if (_windArrow) { _windArrow.Destroy(); }
             
             var windArrow = Resources.Load(WindArrowPrefab) as GameObject;
-            _windArrow = Instantiate(windArrow, point, Quaternion.identity);
+            _windArrow = Instantiate(windArrow);
+            _windArrow.transform.localPosition = ignitionPoint;
             
             var yAxis = new Vector3(0, 1, 0);
             _windArrow.transform.Rotate(yAxis, weatherReport.current.wind_deg);
