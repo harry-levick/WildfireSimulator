@@ -25,6 +25,7 @@ namespace Constants
 
         public const string WindArrowPrefab = "Prefabs/WindArrow";
         public const string ControlLinePrefab = "Prefabs/ControlLine";
+        public const string PerimeterPointPrefab = "Prefabs/PerimeterPoint";
 
         public static readonly List<string> NonBurnableCodes = new List<string> { "NB0", "NB1", "NB2", "NB3", "NB8", "NB9" };
     }

@@ -3,6 +3,7 @@ using Model;
 using Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using External;
 using UnityEngine;
 using static Constants.StringConstants;
@@ -19,6 +20,8 @@ namespace Fire
         private List<FireNode> _perimeterNodes;           // root fire nodes in the tree
         private WeatherProvider _weatherProvider;         // provider to fetch weather forecast
         private GameObject _windArrow;                    // shows the wind speed and direction
+        private GameObject _perimeterPoint;
+        private List<GameObject> _perimeterPoints;
 
         public bool Active { get; private set; }
 
@@ -26,8 +29,10 @@ namespace Fire
         {
             _visitedNodes = new Dictionary<Vector2, bool>();
             _perimeterNodes = new List<FireNode>();
+            _perimeterPoints = new List<GameObject>();
             Active = false;
             _minutesPassed = 0;
+            _perimeterPoint = Resources.Load(PerimeterPointPrefab) as GameObject;
         }
 
         public void Initialise(Vector3 ignitionPoint, AbstractMap map)
@@ -56,6 +61,8 @@ namespace Fire
             _fire = null;
             _visitedNodes.Clear();
             _perimeterNodes.Clear();
+            _perimeterPoints.ForEach(point => point.Destroy());
+            _perimeterPoints.Clear();
         }
 
         public void AdvanceFire(int minutes)
@@ -73,8 +80,20 @@ namespace Fire
             _perimeterNodes = newPerimeterNodes;
             _minutesPassed += minutes;
         }
+        /*
+         
         public void PrintFireBoundary() =>
             _perimeterNodes.ForEach(node => Debug.DrawRay(node.Center, Vector3.up * 100, Color.red, 1000f));
+         */
+
+        public void PrintFireBoundary()
+        {
+            foreach (var node in _perimeterNodes)
+            {
+                var newPoint = Instantiate(_perimeterPoint, node.Center, Quaternion.identity);
+                _perimeterPoints.Add(newPoint);
+            }
+        }
         
         private void Stop() => Active = false;
 
