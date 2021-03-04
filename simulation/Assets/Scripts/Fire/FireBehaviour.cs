@@ -12,19 +12,20 @@ namespace Fire
 {
     public class FireBehaviour : MonoBehaviour
     {
-        private int _minutesPassed;                       // number of minutes since the fire was started
-        private const int FireNodeSizeMetres = 100;       // the size of each node in metres
-        private FireNode _fire;                           // the root node in the fire
-        private RothermelService _rothermelService;       // service used for surface fire rate of spread calculations
-        private Dictionary<Vector2, bool> _visitedNodes;  // internal fire nodes in the tree
-        private List<FireNode> _perimeterNodes;           // root fire nodes in the tree
-        private WeatherProvider _weatherProvider;         // provider to fetch weather forecast
-        private GameObject _windArrow;                    // shows the wind speed and direction
+        public Vector3 ignitionPoint;                     // the point at which the fire was created.
+        public AbstractMap map;
+        public Weather weatherReport;                     // the weather report generated at ignition.
+        public bool Active { get; private set; }
+        private int _minutesPassed;                       // number of minutes since the fire was started.
+        private const int FireNodeSizeMetres = 100;       // the size of each node in metres.
+        private FireNode _fire;                           // the root node in the fire.
+        private RothermelService _rothermelService;       // service used for surface fire rate of spread calculations.
+        private Dictionary<Vector2, bool> _visitedNodes;  // internal fire nodes in the tree.
+        private List<FireNode> _perimeterNodes;           // root fire nodes in the tree.
+        private GameObject _windArrow;                    // shows the wind speed and direction.
         private GameObject _perimeterPoint;
         private List<GameObject> _perimeterPoints;
-
-        public bool Active { get; private set; }
-
+        
         private void Awake()
         {
             _visitedNodes = new Dictionary<Vector2, bool>();
@@ -35,14 +36,14 @@ namespace Fire
             _perimeterPoint = Resources.Load(PerimeterPointPrefab) as GameObject;
         }
 
-        public void Initialise(Vector3 ignitionPoint, AbstractMap map)
+        public void Initialise(Vector3 point)
         {
+            ignitionPoint = point;
             _visitedNodes.Add(new Vector2(ignitionPoint.x, ignitionPoint.z), false);
             _rothermelService = new RothermelService(map);
-            _weatherProvider = new WeatherProvider();
 
             var latlon = _rothermelService.GetLatLonFromUnityCoords(ignitionPoint);
-            var weatherReport = _weatherProvider.GetWeatherReport(latlon)
+            weatherReport = new WeatherProvider().GetWeatherReport(latlon)
                 .GetAwaiter().GetResult();
             
             CreateWindArrow(ignitionPoint, weatherReport);
