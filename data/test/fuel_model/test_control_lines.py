@@ -1,6 +1,7 @@
+from data.src.fuel_model import app
 import json
 import unittest
-from data.src.fuel_model import app
+import uuid
 
 
 class TestControlLines(unittest.TestCase):
@@ -11,6 +12,7 @@ class TestControlLines(unittest.TestCase):
         """
         self.app = app.app.test_client()
         self.app.testing = True
+        self.uuid = uuid.uuid4()
 
     def tearDown(self) -> None:
         """
@@ -52,7 +54,7 @@ class TestControlLines(unittest.TestCase):
 
         :return:
         """
-        res = self.app.get('/control-lines/clear')
+        res = self.app.get('/control-lines/clear', query_string={"uuid": self.uuid})
         self.assertEqual(res.status_code, 200)
 
     def test_put_control_line(self, lat_min=1, lat_max=2, lon_min=1, lon_max=2) -> None:
@@ -64,8 +66,8 @@ class TestControlLines(unittest.TestCase):
         :param lon_max:
         :return:
         """
-        polygon_vertices = f"{lat_min}&{lat_max}&{lon_min}&{lon_max}"
-        res = self.app.put(f'/control-lines/{polygon_vertices}')
+
+        res = self.app.put(f'/control-lines/{lat_min}&{lat_max}&{lon_min}&{lon_max}&{self.uuid}')
         self.assertEqual(res.status_code, 200)
 
     def test_model_code_with_known_coords(self, expected=182) -> None:
@@ -74,6 +76,25 @@ class TestControlLines(unittest.TestCase):
         :param expected:
         :return:
         """
-        res = self.app.get('/model-number', query_string={"lat": 37.826194, "lon": -122.420930})
+        res = self.app.get('/model-number', query_string={"lat": 37.826194, "lon": -122.420930, "uuid": self.uuid})
         self.assertEqual(res.status_code, 200)
         self.assertEqual(expected, json.loads(res.data.decode('utf-8')))
+
+    def test_clear_all_control_lines_removes_current_instance(self) -> None:
+        """
+        :return:
+        """
+        expected = 182
+        self.test_put_control_line(37.826193, 37.827, -122.420940, -122.0)
+        self.test_clear_all_control_lines()
+        self.test_model_code_with_known_coords(expected)
+
+    def test_clear_all_control_lines(self) -> None:
+        """
+
+        :return:
+        """
+        res = self.app.get('/control-lines/clear-all')
+        self.assertEqual(res.status_code, 200)
+
+

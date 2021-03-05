@@ -21,7 +21,7 @@ model_classes = pd.read_csv(scott_burgan_classes)
 model_classes_fuel_load = pd.read_csv(scott_burgan_class_fuel_load)
 model_classes_sav_ratio = pd.read_csv(scott_burgan_class_sav_ratio)
 
-control_lines = []
+control_lines = {}
 
 
 @app.route('/model-number', methods=['GET'])
@@ -33,9 +33,13 @@ def get_model_code() -> Response:
     try:
         lat = float(request.args['lat'])
         lon = float(request.args['lon'])
+        uuid = str(request.args['uuid'])
+
+        if uuid not in control_lines:
+            control_lines[uuid] = []
 
         point = Point(lat, lon)
-        if any(polygon.contains(point) for polygon in control_lines):
+        if any(polygon.contains(point) for polygon in control_lines[uuid]):
             non_burnable = 0
             return jsonify(non_burnable), 200
 
@@ -52,21 +56,28 @@ def get_model_code() -> Response:
         return Response(status=400)
 
 
-@app.route('/control-lines/<float:lat_min>&<float:lat_max>&<float:lon_min>&<float:lon_max>', methods=['PUT'])
-def put_control_line(lat_min: float, lat_max: float, lon_min: float, lon_max: float) -> Response:
+@app.route('/control-lines/<float:lat_min>&<float:lat_max>&<float:lon_min>&<float:lon_max>&<string:uuid>', methods=['PUT'])
+def put_control_line(lat_min: float, lat_max: float, lon_min: float, lon_max: float, uuid: str) -> Response:
     """
     takes the coordinate values of the rectangular control line
     :param lat_min:
     :param lat_max:
     :param lon_min:
     :param lon_max:
+    :param uuid:
     :return: inserts the new polygon into a list of control lines
     """
+    try:
+        if uuid not in control_lines:
+            control_lines[uuid] = []
+    except Exception as e:
+        return Response(status=500)
+
     try:
         corners = [(lat_min, lon_min), (lat_min, lon_max), (lat_max, lon_max), (lat_max, lon_min)]
         new_control_line = Polygon(corners)
 
-        control_lines.append(new_control_line)
+        control_lines[uuid].append(new_control_line)
 
         return Response(status=200)
     except:
@@ -78,9 +89,28 @@ def clear_control_lines() -> Response:
     Clears the list of control lines
     :return:
     """
-    control_lines.clear()
+    try:
+        uuid = str(request.args['uuid'])
 
-    return Response(status=200)
+        if uuid in control_lines:
+            control_lines[uuid].clear()
+
+        return Response(status=200)
+
+    except:
+        return Response(status=500)
+
+@app.route('/control-lines/clear-all', methods=['GET'])
+def clear_all_control_lines():
+    """
+    Clears all instances of control lines
+    :return:
+    """
+    try:
+        control_lines.clear()
+        return Response(status=200)
+    except:
+        return Response(status=500)
 
 
 @app.route('/model-parameters', methods=['GET'])

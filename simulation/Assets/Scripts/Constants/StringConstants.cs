@@ -9,13 +9,15 @@ namespace Constants
         private const string MoisturePort = ":5500";
         
         public const string ModelNumberURL =
-            LocalHost + ModelPort + "/model-number?lat={0}&lon={1}";
+            LocalHost + ModelPort + "/model-number?lat={0}&lon={1}&uuid={2}";
         public const string ModelParametersURL =
             LocalHost + ModelPort + "/model-parameters?number={0}";
         public const string PutControlLineUrl =
-            LocalHost + ModelPort + "/control-lines/{0}&{1}&{2}&{3}";
+            LocalHost + ModelPort + "/control-lines/{0}&{1}&{2}&{3}&{4}";
         public const string ClearControlLinesUrl =
-            LocalHost + ModelPort + "/control-lines/clear";
+            LocalHost + ModelPort + "/control-lines/clear?uuid={0}";
+        public const string ClearAllControlLinesUrl = 
+            LocalHost + ModelPort + "/control-lines/clear-all";
         public const string MoistureURL =
             LocalHost + MoisturePort + "/live-fuel-moisture-content?lat={0}&lon={1}";
         

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using External;
+using Mapbox.Utils;
 using UnityEngine;
 using static Constants.StringConstants;
 
@@ -25,12 +26,14 @@ namespace Fire
         private GameObject _windArrow;                    // shows the wind speed and direction.
         private GameObject _perimeterPoint;
         private List<GameObject> _perimeterPoints;
+        private Guid _controlLineId;                      // identify which instance to add / remove control lines from
         
         private void Awake()
         {
             Active = false;
             _minutesPassed = 0;
             _perimeterPoint = Resources.Load(PerimeterPointPrefab) as GameObject;
+            _controlLineId = Guid.NewGuid();
         }
 
         public void Initialise(Vector3 point)
@@ -52,7 +55,7 @@ namespace Fire
             CreateWindArrow(weatherReport);
 
             _fire = new FireNode(null, _rothermelService, weatherReport, ignitionPoint, 
-                FireNodeSizeMetres, ref _visitedNodes);
+                FireNodeSizeMetres, _controlLineId, ref _visitedNodes);
             
             _perimeterNodes.Add(_fire);
             Active = true;
@@ -90,6 +93,11 @@ namespace Fire
                 var newPoint = Instantiate(_perimeterPoint, node.Center, Quaternion.identity);
                 _perimeterPoints.Add(newPoint);
             }
+        }
+
+        public void PutControlLine(Vector2d min, Vector2d max)
+        {
+            FuelModelProvider.PutControlLine(min, max, _controlLineId.ToString());
         }
         
         private void Stop() => Active = false;
