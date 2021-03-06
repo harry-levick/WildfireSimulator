@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using External;
+using Fire;
 using Mapbox.Unity.Map;
 using Mapbox.Utils;
 using Player;
@@ -19,6 +20,7 @@ namespace GameMenu
         public Button createControlLine;
         public GameObject holding;
         public AbstractMap map;
+        public FireBehaviour fire;
 
         private bool _pauseClicked;
         
@@ -87,7 +89,7 @@ namespace GameMenu
             }
             else throw new Exception("Can't drop here.");
             
-            FuelModelProvider.PutControlLine(minGeo, maxGeo);
+            fire.PutControlLine(minGeo, maxGeo);
             
             
             holding = null;

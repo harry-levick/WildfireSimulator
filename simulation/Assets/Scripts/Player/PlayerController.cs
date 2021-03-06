@@ -28,7 +28,7 @@ namespace Player
         
         private void Awake()
         {
-            FuelModelProvider.ClearControlLines(); // clear all control lines set on previous instances
+            FuelModelProvider.ClearAllControlLines(); // clear all control lines set on previous instances
             
             _mousePressed = false;
             UnityService = new UnityService();
