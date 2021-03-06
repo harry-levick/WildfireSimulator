@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Fire;
+using Mapbox.Unity.Map;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
@@ -13,25 +13,29 @@ namespace Agents
 {
     public class FireFighterAgent : Agent
     {
-        public FireBehaviour fire;
-        private GameObject controlLine;
-        private List<GameObject> controlLines = new List<GameObject>();
+        public FireBehaviour fire;                              // the fire that is being controlled
+        public AbstractMap map;                                 // the map which the fire is burning on
+        private GameObject _controlLinePrefab;                  // prefab of the control line
+        private List<GameObject> _controlLines;                 // list of all control lines that we have placed this episode
+        private const float VarianceFromCenter = 1600;          // the variance in transform position of the agent from the local center
+        private const int HeightAboveTerrain = 500;             // the y coordinate of the agents local position
+        private const float AgentSpeed = 400f;                  // speed of the agent
 
         public void Awake()
         {
-            controlLine = Resources.Load(ControlLinePrefab) as GameObject;
+            _controlLinePrefab = Resources.Load(ControlLinePrefab) as GameObject;
+            _controlLines = new List<GameObject>();
         }
 
         public override void OnEpisodeBegin()
         {
-            const float max = 1600;
-            const float min = -1600;
+            var posX = Random.Range(-VarianceFromCenter, VarianceFromCenter);
+            var posZ = Random.Range(-VarianceFromCenter, VarianceFromCenter);
+            
+            transform.localPosition = new Vector3(posX, HeightAboveTerrain, posZ);
 
-            var localPosition = new Vector3(Random.Range(min, max), 500, Random.Range(min, max));
-            transform.localPosition = localPosition;
-
-            controlLines.ForEach(line => line.Destroy());
-            controlLines.Clear();
+            _controlLines.ForEach(line => line.Destroy());
+            _controlLines.Clear();
             
             fire.Reset();
             fire.Initialise(GetTerrainPoint());
@@ -44,7 +48,9 @@ namespace Agents
                 return hitInfo.point;
             }
 
-            throw new Exception("Out of world bounds.");
+            SetReward(-1f);
+            EndEpisode();
+            throw new Exception();
         }
 
         public override void CollectObservations(VectorSensor sensor)
@@ -58,36 +64,59 @@ namespace Agents
         {
             var moveX = actions.ContinuousActions[0];
             var moveZ = actions.ContinuousActions[1];
-
-            const float moveSpeed = 400f;
-            const float rotateDegrees = 90f;
-
-            transform.position += new Vector3(moveX, 0, moveZ) * Time.deltaTime * moveSpeed;
+            
+            transform.position += new Vector3(moveX, 0, moveZ) * Time.deltaTime * AgentSpeed;
 
             var placeControlLine = actions.DiscreteActions[0] == 1;
             var rotate = actions.DiscreteActions[1] == 1;
 
             if (!placeControlLine) return;
             
-            var holding = Instantiate(controlLine);
-            controlLines.Add(holding);
-            
+            var holding = Instantiate(_controlLinePrefab);
+            _controlLines.Add(holding);
+                
             holding.transform.position = GetTerrainPoint();
 
-            if (!rotate) return;
+            if (rotate)
+            {
+                const float rotateDegrees = 90f;
+                holding.transform.Rotate(Vector3.up, rotateDegrees);
+            }
+                
+            DropControlLine(holding);
+        }
+        
+        private void DropControlLine(GameObject obj)
+        {
+            var bounds = obj.GetComponent<Renderer>().bounds;
+            var height = transform.position.y;
+            
+            var minWorld = bounds.min;
+            var maxWorld = bounds.max;
 
-            holding.transform.Rotate(Vector3.up, rotateDegrees);
+            minWorld.y = height;
+            maxWorld.y = height;
+
+            if (Physics.Raycast(minWorld, Vector3.down, out var minHit, Mathf.Infinity) &&
+                Physics.Raycast(maxWorld, Vector3.down, out var maxHit, Mathf.Infinity))
+            {
+                var minPos = map.WorldToGeoPosition(minHit.point);
+                var maxPos = map.WorldToGeoPosition(maxHit.point);
+
+                fire.PutControlLine(minPos, maxPos);
+            }
         }
 
         public override void Heuristic(in ActionBuffers actionsOut)
         {
-            ActionSegment<float> continuousActions = actionsOut.ContinuousActions;
-            ActionSegment<int> discreteActions = actionsOut.DiscreteActions;
+            var continuousActions = actionsOut.ContinuousActions;
+            var discreteActions = actionsOut.DiscreteActions;
             
             continuousActions[0] = Input.GetAxisRaw("Horizontal");
             continuousActions[1] = Input.GetAxisRaw("Vertical");
 
             discreteActions[0] = Input.GetKey(KeyCode.Space) ? 1 : 0;
+            discreteActions[1] = Input.GetKey(KeyCode.LeftShift) ? 1 : 0;
         }
 
         private void OnTriggerEnter(Collider other)
