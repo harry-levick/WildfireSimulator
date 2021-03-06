@@ -99,6 +99,15 @@ namespace Fire
         {
             FuelModelProvider.PutControlLine(min, max, _controlLineId.ToString());
         }
+
+        public float ContainedPercentage()
+        {
+            if (!_perimeterNodes.Any()) return 0f;
+            
+            var numContained = (float) _perimeterNodes.Sum(node => node.IsContained ? 1 : 0);
+
+            return numContained / _perimeterNodes.Count * 100;
+        }
         
         private void Stop() => Active = false;
 

@@ -29,6 +29,7 @@ namespace Fire
         private readonly Vector2d _latlon;                         // latitude and longitude of this node
         private readonly Weather _weatherReportAtIgnition;         // the weather forecast given at the point of ignition
         private Guid _controlLineId; 
+        public bool IsContained => !_ratesOfSpread.Values.All(rate => rate > 0.0);
         
         // the vector position of this node including the y coordinate
         public Vector3 Center
@@ -36,6 +37,7 @@ namespace Fire
             get => CalculateYCoord(_center);
             private set => _center = value;
         }
+
         
         public FireNode(FireNode parent, RothermelService rothermelService, Weather weatherReportAtIgnition,
             Vector3 center, int size, Guid guid, ref Dictionary<Vector2, bool> visited)
