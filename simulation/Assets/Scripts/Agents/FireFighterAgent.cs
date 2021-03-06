@@ -20,7 +20,8 @@ namespace Agents
         private const float VarianceFromCenter = 1600;          // the variance in transform position of the agent from the local center
         private const int HeightAboveTerrain = 500;             // the y coordinate of the agents local position
         private const float AgentSpeed = 400f;                  // speed of the agent
-
+        private float _maxContained;
+        
         public void Awake()
         {
             _controlLinePrefab = Resources.Load(ControlLinePrefab) as GameObject;
@@ -29,6 +30,7 @@ namespace Agents
 
         public override void OnEpisodeBegin()
         {
+            _maxContained = 0.0f;
             var posX = Random.Range(-VarianceFromCenter, VarianceFromCenter);
             var posZ = Random.Range(-VarianceFromCenter, VarianceFromCenter);
             
@@ -47,9 +49,6 @@ namespace Agents
             {
                 return hitInfo.point;
             }
-
-            SetReward(-1f);
-            EndEpisode();
             throw new Exception();
         }
 
@@ -62,6 +61,8 @@ namespace Agents
 
         public override void OnActionReceived(ActionBuffers actions)
         {
+            CheckContainment();
+            
             var moveX = actions.ContinuousActions[0];
             var moveZ = actions.ContinuousActions[1];
             
@@ -74,7 +75,7 @@ namespace Agents
             
             var holding = Instantiate(_controlLinePrefab);
             _controlLines.Add(holding);
-                
+            
             holding.transform.position = GetTerrainPoint();
 
             if (rotate)
@@ -84,6 +85,24 @@ namespace Agents
             }
                 
             DropControlLine(holding);
+        }
+
+        private void CheckContainment()
+        {
+            var contained = fire.ContainedPercentage();
+            Debug.Log($"Contained = {contained}");
+            if (contained > _maxContained)
+            {
+                _maxContained = contained;
+                AddReward(+0.1f);
+            } 
+            else AddReward(-0.1f);
+
+            if (_maxContained.Equals(100.0f))
+            {
+                SetReward(+10.0f);
+                EndEpisode();
+            }
         }
         
         private void DropControlLine(GameObject obj)
@@ -121,7 +140,7 @@ namespace Agents
 
         private void OnTriggerEnter(Collider other)
         {
-            SetReward(-1f);
+            SetReward(-10f);
             EndEpisode();
         }
     }
