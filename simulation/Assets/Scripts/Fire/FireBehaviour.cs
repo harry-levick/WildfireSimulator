@@ -8,11 +8,13 @@ using External;
 using Mapbox.Utils;
 using UnityEngine;
 using static Constants.StringConstants;
+using Random = UnityEngine.Random;
 
 namespace Fire
 {
     public class FireBehaviour : MonoBehaviour
     {
+        private bool _isLearning;
         public Vector3 ignitionPoint;                     // the point at which the fire was created.
         public AbstractMap map;
         public Weather weatherReport;                     // the weather report generated at ignition.
@@ -34,6 +36,8 @@ namespace Fire
             _minutesPassed = 0;
             _perimeterPoint = Resources.Load(PerimeterPointPrefab) as GameObject;
             _controlLineId = Guid.NewGuid();
+
+            _isLearning = GameObject.Find("Agent") != null;
         }
 
         public void Initialise(Vector3 point)
@@ -49,8 +53,7 @@ namespace Fire
             _rothermelService = new RothermelService(map);
 
             var latlon = _rothermelService.GetLatLonFromUnityCoords(ignitionPoint);
-            weatherReport = new WeatherProvider().GetWeatherReport(latlon)
-                .GetAwaiter().GetResult();
+            weatherReport = GetWeatherReport(latlon);
             
             CreateWindArrow(weatherReport);
 
@@ -88,10 +91,9 @@ namespace Fire
 
         public void PrintFireBoundary()
         {
-            foreach (var node in _perimeterNodes)
+            foreach (var nodeCenter in _perimeterNodes.Select(node => Instantiate(_perimeterPoint, node.Center, Quaternion.identity)))
             {
-                var newPoint = Instantiate(_perimeterPoint, node.Center, Quaternion.identity);
-                _perimeterPoints.Add(newPoint);
+                _perimeterPoints.Add(nodeCenter);
             }
         }
 
@@ -126,6 +128,24 @@ namespace Fire
             _windArrow.transform.Rotate(yAxis, weatherReport.current.wind_deg);
             _windArrow.GetComponentInChildren<TextMesh>().text = 
                 $"{weatherReport.current.WindSpeedMetresPerSecond.ToString()}m/s";
+        }
+
+        private Weather GetWeatherReport(Vector2d latlon)
+        {
+            if (!_isLearning)
+            {
+                return new WeatherProvider().GetWeatherReport(latlon)
+                    .GetAwaiter().GetResult();
+            }
+            
+            return new Weather
+            {
+                current = new Wind
+                {
+                    wind_deg = Random.Range(0, 360),
+                    wind_speed = Random.Range(1000, 2000)
+                }
+            };
         }
     }
 }
