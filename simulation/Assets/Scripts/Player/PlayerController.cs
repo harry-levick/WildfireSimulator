@@ -38,16 +38,6 @@ namespace Player
         // Update is called once per frame
         private void Update()
         {
-            if (!_gamePaused && fire.Active)
-            {
-                if (_counter == 10)
-                {
-                    fire.AdvanceFire(100);
-                    _counter = 0;
-                    fire.PrintFireBoundary();
-                }
-                else _counter += 1;
-            }
             HandleLeftMouseButton();
             HandleRightMouseButton();
             HandleFireIgnition();

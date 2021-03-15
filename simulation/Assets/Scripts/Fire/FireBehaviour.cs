@@ -28,14 +28,15 @@ namespace Fire
         private GameObject _windArrow;                    // shows the wind speed and direction.
         private GameObject _perimeterPoint;
         private List<GameObject> _perimeterPoints;
-        private Guid _controlLineId;                      // identify which instance to add / remove control lines from
+        public Guid controlLineId;                        // identify which instance to add / remove control lines from
+        private int _counter = 0;
         
         private void Awake()
         {
             Active = false;
             _minutesPassed = 0;
             _perimeterPoint = Resources.Load(PerimeterPointPrefab) as GameObject;
-            _controlLineId = Guid.NewGuid();
+            controlLineId = Guid.NewGuid();
 
             _isLearning = GameObject.Find("Agent") != null;
         }
@@ -58,10 +59,23 @@ namespace Fire
             CreateWindArrow(weatherReport);
 
             _fire = new FireNode(null, _rothermelService, weatherReport, ignitionPoint, 
-                FireNodeSizeMetres, _controlLineId, ref _visitedNodes);
+                FireNodeSizeMetres, controlLineId, ref _visitedNodes);
             
             _perimeterNodes.Add(_fire);
             Active = true;
+        }
+
+        private void Update()
+        {
+            if (!Active) return;
+            
+            if (_counter == 10)
+            {
+                AdvanceFire(100);
+                _counter = 0;
+                PrintFireBoundary();
+            }
+            else _counter += 1;
         }
 
         public void Reset()
@@ -99,7 +113,7 @@ namespace Fire
 
         public void PutControlLine(Vector2d min, Vector2d max)
         {
-            FuelModelProvider.PutControlLine(min, max, _controlLineId.ToString());
+            FuelModelProvider.PutControlLine(min, max, controlLineId.ToString());
         }
 
         public float ContainedPercentage()
