@@ -30,6 +30,8 @@ namespace Fire
         private List<GameObject> _perimeterPoints;
         public Guid controlLineId;                        // identify which instance to add / remove control lines from
         private int _counter = 0;
+
+        public int NumPerimeterNodes => _perimeterNodes.Count;
         
         private void Awake()
         {
@@ -105,6 +107,9 @@ namespace Fire
 
         public void PrintFireBoundary()
         {
+            _perimeterPoints.ForEach(point => point.Destroy());
+            _perimeterPoints.Clear();
+            
             foreach (var nodeCenter in _perimeterNodes.Select(node => Instantiate(_perimeterPoint, node.Center, Quaternion.identity)))
             {
                 _perimeterPoints.Add(nodeCenter);
