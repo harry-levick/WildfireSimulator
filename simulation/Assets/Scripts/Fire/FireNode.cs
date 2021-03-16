@@ -96,8 +96,7 @@ namespace Fire
                     {
                         _distancesTravelled = {[direction] = remaining}
                     };
-                // add node only if burnable
-                if (!NonBurnableCodes.Contains(newNode.FuelModelCode)) newNodes.Add(newNode);
+                newNodes.Add(newNode);
                 
                 _visitedNodes.Add(nodeCenterIn2d, true);
 
