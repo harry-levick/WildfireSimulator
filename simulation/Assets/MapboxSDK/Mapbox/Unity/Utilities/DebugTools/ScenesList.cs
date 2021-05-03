@@ -1,6 +1,8 @@
-namespace Mapbox.Unity.Utilities.DebugTools
+using Mapbox.Unity.Utilities.DebugTools;
+using UnityEngine;
+
+namespace MapboxSDK.Mapbox.Unity.Utilities.DebugTools
 {
-	using UnityEngine;
 	#if UNITY_EDITOR
 	using UnityEditor;
 	#endif

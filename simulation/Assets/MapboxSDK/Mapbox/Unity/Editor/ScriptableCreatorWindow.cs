@@ -1,12 +1,13 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using UnityEditor;
-	using System.Collections.Generic;
-	using System;
-	using System.Linq;
-	using Mapbox.Unity.Map;
+﻿#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Mapbox.Unity.Map;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	public class ScriptableCreatorWindow : EditorWindow
 	{
 		Type _type;
@@ -190,3 +191,4 @@
 		}
 	}
 }
+#endif

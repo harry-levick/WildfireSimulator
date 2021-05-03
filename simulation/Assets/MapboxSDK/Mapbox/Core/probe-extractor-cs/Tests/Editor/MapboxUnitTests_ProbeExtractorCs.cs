@@ -6,6 +6,8 @@
 
 // TODO: figure out how run tests outside of Unity with .NET framework, something like '#if !UNITY'
 
+using MapboxSDK.Mapbox.Core;
+
 namespace Mapbox.ProbeExtractorCs.UnitTest
 {
 
@@ -19,7 +21,6 @@ namespace Mapbox.ProbeExtractorCs.UnitTest
 	using System;
 	using System.Linq;
 	using UnityEngine;
-	using Mapbox.CheapRulerCs;
 
 	[TestFixture]
 	internal class ProbeExtractorCsTest

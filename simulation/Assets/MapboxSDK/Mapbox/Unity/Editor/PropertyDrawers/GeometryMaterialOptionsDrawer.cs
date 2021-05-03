@@ -1,15 +1,14 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEditor;
-	using UnityEngine;
-	using Mapbox.Unity;
-	using Mapbox.Editor;
-	using Mapbox.Unity.Map;
-	using Mapbox.Unity.MeshGeneration.Data;
-	using Mapbox.VectorTile.ExtensionMethods;
-	using System.IO;
-	using System.Collections.Generic;
+﻿#if UNITY_EDITOR
+using System.Collections.Generic;
+using System.IO;
+using Mapbox.Unity;
+using Mapbox.Unity.Map;
+using Mapbox.VectorTile.ExtensionMethods;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	public class StyleIconBundle
 	{
 		public string path;
@@ -237,3 +236,4 @@
 		}
 	}
 }
+#endif

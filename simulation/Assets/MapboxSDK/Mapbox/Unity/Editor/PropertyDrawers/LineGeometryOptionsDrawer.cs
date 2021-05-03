@@ -1,13 +1,10 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEditor;
-	using UnityEngine;
-	using Mapbox.Unity.Map;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System;
-	using Mapbox.VectorTile.ExtensionMethods;
+﻿#if UNITY_EDITOR
+using Mapbox.Unity.Map;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	[CustomPropertyDrawer(typeof(LineGeometryOptions))]
 	public class LineGeometryOptionsDrawer : PropertyDrawer
 	{
@@ -35,3 +32,4 @@
 		}
 	}
 }
+#endif

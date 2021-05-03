@@ -1,12 +1,14 @@
-namespace Mapbox.Editor
-{
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using UnityEditor;
-	using UnityEditor.IMGUI.Controls;
-	using UnityEngine;
+#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Mapbox.Editor;
+using UnityEditor;
+using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	internal class TreeViewItem<T> : TreeViewItem where T : TreeElement
 	{
 		public T data { get; set; }
@@ -237,3 +239,4 @@ namespace Mapbox.Editor
 	}
 
 }
+#endif

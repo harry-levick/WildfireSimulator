@@ -1,13 +1,10 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using System;
-	using System.Collections;
-	using UnityEditor;
-	using Mapbox.Unity.Map;
-	using Mapbox.Editor;
-	using Mapbox.Unity.MeshGeneration.Modifiers;
+﻿#if UNITY_EDITOR
+using Mapbox.Unity.Map;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	public class ModelingSectionDrawer
 	{
 		private string objectId = "";
@@ -91,3 +88,4 @@
 
 	}
 }
+#endif

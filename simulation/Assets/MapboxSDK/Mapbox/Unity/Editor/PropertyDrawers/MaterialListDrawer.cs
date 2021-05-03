@@ -1,9 +1,10 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEditor;
-	using UnityEngine;
-	using Mapbox.Unity.MeshGeneration.Modifiers;
+﻿#if UNITY_EDITOR
+using Mapbox.Unity.MeshGeneration.Modifiers;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	[CustomPropertyDrawer(typeof(MaterialList))]
 	public class MaterialListDrawer : PropertyDrawer
 	{
@@ -20,3 +21,4 @@
 		}
 	}
 }
+#endif

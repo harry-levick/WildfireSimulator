@@ -1,9 +1,10 @@
-namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using UnityEditor;
-	using Mapbox.Unity.MeshGeneration.Factories;
+#if UNITY_EDITOR
+using Mapbox.Unity.MeshGeneration.Factories;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	[CustomEditor(typeof(MapImageFactory))]
 	public class MapImageFactoryEditor : FactoryEditor
 	{
@@ -33,3 +34,4 @@ namespace Mapbox.Editor
 		}
 	}
 }
+#endif

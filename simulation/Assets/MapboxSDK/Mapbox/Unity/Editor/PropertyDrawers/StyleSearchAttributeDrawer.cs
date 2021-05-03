@@ -1,10 +1,12 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using UnityEditor;
-	using Mapbox.Unity.Utilities;
-	using Mapbox.Unity;
+﻿#if UNITY_EDITOR
+using Mapbox.Editor;
+using Mapbox.Unity;
+using Mapbox.Unity.Utilities;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	/// <summary>
 	/// Custom property drawer for style searching. <para/>
 	/// Includes a search window to enable listing of styles associated with a username.
@@ -55,3 +57,4 @@
 		}
 	}
 }
+#endif

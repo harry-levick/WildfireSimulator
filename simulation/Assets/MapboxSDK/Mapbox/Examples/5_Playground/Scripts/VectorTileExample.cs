@@ -3,6 +3,9 @@
 //     Copyright (c) 2016 Mapbox. All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
+
+using MapboxSDK.Mapbox.Core.Platform;
+
 namespace Mapbox.Examples.Playground
 {
 	using Mapbox.Unity;

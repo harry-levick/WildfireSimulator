@@ -1,13 +1,14 @@
-﻿using UnityEngine;
-using UnityEditor;
-using System.Collections.Generic;
+﻿#if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Mapbox.Unity;
 using Mapbox.Unity.Map;
+using UnityEditor;
+using UnityEngine;
 
-namespace Mapbox.Editor
+namespace MapboxSDK.Mapbox.Unity.Editor
 {
 	/// <summary>
 	/// Pop up menu for selecting, creating and assigning modifier instances to AbstractMap.
@@ -148,7 +149,7 @@ namespace Mapbox.Editor
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="T:Mapbox.Editor.PopupSelectionMenu"/> class.
+		/// Initializes a new instance of the <see cref="T:MapboxSDK.Mapbox.Unity.Editor.PopupSelectionMenu"/> class.
 		/// </summary>
 		/// <param name="t">T.</param>
 		/// <param name="p">P.</param>
@@ -159,3 +160,4 @@ namespace Mapbox.Editor
 		}
 	}
 }
+#endif

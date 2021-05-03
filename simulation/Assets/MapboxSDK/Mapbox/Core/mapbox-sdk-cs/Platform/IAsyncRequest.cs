@@ -5,6 +5,8 @@
 //-----------------------------------------------------------------------
 
 
+using MapboxSDK.Mapbox.Unity.Utilities;
+
 namespace Mapbox.Platform {
 
 	using Mapbox.Unity.Utilities;

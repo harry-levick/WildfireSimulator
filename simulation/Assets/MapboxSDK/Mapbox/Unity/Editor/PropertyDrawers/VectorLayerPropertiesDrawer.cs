@@ -1,10 +1,11 @@
-﻿namespace Mapbox.Editor
-{
-	using System;
-	using UnityEngine;
-	using UnityEditor;
-	using Mapbox.Unity.Map;
+﻿#if UNITY_EDITOR
+using System;
+using Mapbox.Unity.Map;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	public class VectorLayerPropertiesDrawer
 	{
 		private string objectId = "";
@@ -136,3 +137,4 @@
 
 	}
 }
+#endif

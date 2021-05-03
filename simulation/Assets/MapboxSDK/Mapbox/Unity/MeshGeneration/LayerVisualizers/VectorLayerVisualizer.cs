@@ -1,4 +1,5 @@
 using Mapbox.VectorTile.Geometry;
+using MapboxSDK.Mapbox.Unity.Utilities;
 
 namespace Mapbox.Unity.MeshGeneration.Interfaces
 {

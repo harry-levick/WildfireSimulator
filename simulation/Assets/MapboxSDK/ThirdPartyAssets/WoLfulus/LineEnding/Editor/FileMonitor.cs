@@ -1,11 +1,13 @@
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
+using WoLfulus.LineEnding;
 
 //#pragma warning disable 0414
-namespace WoLfulus.LineEnding
+namespace MapboxSDK.ThirdPartyAssets.WoLfulus.LineEnding.Editor
 {
     /// <summary>
     /// Initialize on load
@@ -199,3 +201,4 @@ namespace WoLfulus.LineEnding
         }
     }
 }
+#endif

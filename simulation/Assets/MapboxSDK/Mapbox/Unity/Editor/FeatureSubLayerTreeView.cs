@@ -1,11 +1,13 @@
-﻿namespace Mapbox.Editor
-{
-	using System.Collections.Generic;
-	using UnityEngine;
-	using UnityEditor.IMGUI.Controls;
-	using UnityEditor;
-	using Mapbox.Unity.Map;
+﻿#if UNITY_EDITOR
+using System.Collections.Generic;
+using Mapbox.Editor;
+using Mapbox.Unity.Map;
+using UnityEditor;
+using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	internal class FeatureSubLayerTreeView : TreeViewWithTreeModel<FeatureTreeElement>
 	{
 		public SerializedProperty Layers;
@@ -192,3 +194,4 @@
 		}
 	}
 }
+#endif

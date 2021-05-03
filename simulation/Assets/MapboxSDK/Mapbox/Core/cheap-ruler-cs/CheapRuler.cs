@@ -1,9 +1,7 @@
-﻿namespace Mapbox.CheapRulerCs
+﻿using System;
+
+namespace MapboxSDK.Mapbox.Core
 {
-
-	using System;
-
-
 	public enum CheapRulerUnits
 	{
 		Kilometers,

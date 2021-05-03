@@ -1,9 +1,10 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using UnityEditor;
-	using Mapbox.Unity.MeshGeneration.Modifiers;
+﻿#if UNITY_EDITOR
+using Mapbox.Unity.MeshGeneration.Modifiers;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	[CustomEditor(typeof(MaterialModifier))]
 	public class MaterialModifierEditor : UnityEditor.Editor
 	{
@@ -32,3 +33,4 @@
 		}
 	}
 }
+#endif

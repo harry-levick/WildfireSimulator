@@ -4,6 +4,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using MapboxSDK.Mapbox.Core.Platform;
+using MapboxSDK.Mapbox.Unity.Utilities;
+
 namespace Mapbox.Map
 {
 	using System;

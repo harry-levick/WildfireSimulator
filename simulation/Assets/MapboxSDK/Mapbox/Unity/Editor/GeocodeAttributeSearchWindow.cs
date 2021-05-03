@@ -1,15 +1,14 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using UnityEditor;
-	using System;
-	using System.Collections.Generic;
-	using Mapbox.Geocoding;
-	using Mapbox.Unity;
-	using System.Globalization;
-	using Mapbox.Unity.Map;
-	using Mapbox.Editor;
+﻿#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using Mapbox.Geocoding;
+using Mapbox.Unity;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	public class GeocodeAttributeSearchWindow : EditorWindow
 	{
 		SerializedProperty _coordinateProperty;
@@ -182,3 +181,4 @@
 		}
 	}
 }
+#endif

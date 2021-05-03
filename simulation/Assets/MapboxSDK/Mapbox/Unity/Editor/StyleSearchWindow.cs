@@ -1,15 +1,17 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using UnityEditor;
-	using System.Collections.Generic;
-	using Mapbox.Unity;
-	using Mapbox.Json;
-	using Mapbox.Unity.Utilities;
-	using Mapbox.Unity.Map;
-	using System.Collections;
-	using UnityEngine.Networking;
+﻿#if UNITY_EDITOR
+using System.Collections;
+using System.Collections.Generic;
+using Mapbox.Json;
+using Mapbox.Unity;
+using Mapbox.Unity.Map;
+using Mapbox.Unity.Utilities;
+using MapboxSDK.Mapbox.Unity.Utilities;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Networking;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	public class StyleSearchWindow : EditorWindow
 	{
 		SerializedProperty _property;
@@ -151,7 +153,7 @@
 		IEnumerator ListStyles(string token)
 		{
 #if UNITY_2017_1_OR_NEWER
-			UnityWebRequest webRequest = new UnityWebRequest(Utils.Constants.BaseAPI + string.Format("styles/v1/{0}?access_token={1}", _username, token))
+			UnityWebRequest webRequest = new UnityWebRequest(global::Mapbox.Utils.Constants.BaseAPI + string.Format("styles/v1/{0}?access_token={1}", _username, token))
 			{
 				downloadHandler = new DownloadHandlerBuffer()
 			};
@@ -211,3 +213,4 @@
 		}
 	}
 }
+#endif

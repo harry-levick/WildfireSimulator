@@ -1,4 +1,7 @@
-﻿namespace Mapbox.Platform.Cache
+﻿using MapboxSDK.Mapbox.Core.Platform;
+using MapboxSDK.Mapbox.Unity.Utilities;
+
+namespace Mapbox.Platform.Cache
 {
 	using System;
 	using Mapbox.Platform;

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using External;
 using Fire;
 using GameMenu;
-using Mapbox.Unity.Map;
 using Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -25,14 +24,12 @@ namespace Player
         public Hud hudMenu;
         public Settings settingsMenu;
         public new Camera camera;
-        public AbstractMap map;
         private int _counter;
         
         private void Awake()
         {
-            FuelModelProvider.ClearControlLines(); // clear all control lines set on previous instances
+            FuelModelProvider.ClearAllControlLines(); // clear all control lines set on previous instances
             
-            map = FindObjectOfType<AbstractMap>();
             _mousePressed = false;
             UnityService = new UnityService();
             _counter = 0;
@@ -41,16 +38,6 @@ namespace Player
         // Update is called once per frame
         private void Update()
         {
-            if (!_gamePaused && fire.Active)
-            {
-                if (_counter == 10)
-                {
-                    fire.AdvanceFire(100);
-                    _counter = 0;
-                    fire.PrintFireBoundary();
-                }
-                else _counter += 1;
-            }
             HandleLeftMouseButton();
             HandleRightMouseButton();
             HandleFireIgnition();
@@ -171,7 +158,7 @@ namespace Player
             try
             {
                 fire.Reset();
-                fire.Initialise(ignitionPoint, map);
+                fire.Initialise(ignitionPoint);
             }
             catch (Exception e)
             {

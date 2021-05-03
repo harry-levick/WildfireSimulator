@@ -3,6 +3,7 @@ using Mapbox.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using MapboxSDK.Mapbox.Core.Platform;
 
 namespace Mapbox.Platform.TilesetTileJSON
 {

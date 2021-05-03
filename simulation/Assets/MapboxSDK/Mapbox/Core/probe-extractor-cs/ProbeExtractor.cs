@@ -1,8 +1,7 @@
-﻿namespace Mapbox.ProbeExtractorCs
+﻿using MapboxSDK.Mapbox.Core;
+
+namespace Mapbox.ProbeExtractorCs
 {
-
-
-	using Mapbox.CheapRulerCs;
 	using System;
 	using System.Collections.Generic;
 

@@ -1,0 +1,20 @@
+{
+    "name": "cheap-ruler-cs-test",
+    "references": [
+        "GUID:87f0ecf8a7d7e481b89419c56bc1c626"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "Mapbox.Json.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

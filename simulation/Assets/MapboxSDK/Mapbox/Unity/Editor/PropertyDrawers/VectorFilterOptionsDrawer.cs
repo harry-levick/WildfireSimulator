@@ -1,12 +1,12 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEditor;
-	using UnityEngine;
-	using Mapbox.Unity.Map;
-	using Mapbox.Unity.MeshGeneration.Filters;
-	using System.Linq;
-	using System.Collections.Generic;
+﻿#if UNITY_EDITOR
+using System.Collections.Generic;
+using Mapbox.Unity.Map;
+using Mapbox.Unity.MeshGeneration.Filters;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	[CustomPropertyDrawer(typeof(VectorFilterOptions))]
 	public class VectorFilterOptionsDrawer : PropertyDrawer
 	{
@@ -271,3 +271,4 @@
 		}
 	}
 }
+#endif

@@ -4,6 +4,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using MapboxSDK.Mapbox.Core.Platform;
+
 namespace Mapbox.Directions
 {
     using System;

@@ -6,16 +6,13 @@
 
 // TODO: figure out how run tests outside of Unity with .NET framework, something like '#if !UNITY'
 
-namespace Mapbox.CheapRulerCs.UnitTest
+using System.Collections.Generic;
+using Mapbox.Json.Linq;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace MapboxSDK.Mapbox.Core.Tests.Editor
 {
-
-
-	using NUnit.Framework;
-	using System.Collections.Generic;
-	using UnityEngine;
-	using Mapbox.CheapRulerCs;
-	using Mapbox.Json.Linq;
-
 	[TestFixture]
 	internal class CheapRulerCsTest
 	{

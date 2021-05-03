@@ -28,6 +28,8 @@ namespace Fire
         private readonly RothermelService _rothermelService;       // service used for surface fire rate of spread equations
         private readonly Vector2d _latlon;                         // latitude and longitude of this node
         private readonly Weather _weatherReportAtIgnition;         // the weather forecast given at the point of ignition
+        private Guid _controlLineId; 
+        public bool IsContained => !_ratesOfSpread.Values.All(rate => rate > 0.0);
         
         // the vector position of this node including the y coordinate
         public Vector3 Center
@@ -35,9 +37,10 @@ namespace Fire
             get => CalculateYCoord(_center);
             private set => _center = value;
         }
+
         
         public FireNode(FireNode parent, RothermelService rothermelService, Weather weatherReportAtIgnition,
-            Vector3 center, int size, ref Dictionary<Vector2, bool> visited)
+            Vector3 center, int size, Guid guid, ref Dictionary<Vector2, bool> visited)
         {
             Center = center;
             _parent = parent;
@@ -45,6 +48,7 @@ namespace Fire
             _nodeSizeMetres = size;
             _visitedNodes = visited;
             _weatherReportAtIgnition = weatherReportAtIgnition;
+            _controlLineId = guid;
             _children = new List<FireNode>();
             _latlon = _rothermelService.GetLatLonFromUnityCoords(Center);
             _fuelMoistureProvider = new FuelMoistureProvider();
@@ -56,7 +60,7 @@ namespace Fire
 
         private void CalculateSpreadRates()
         {
-            var model = _fuelModelProvider.GetFuelModelParameters(_latlon)
+            var model = _fuelModelProvider.GetFuelModelParameters(_latlon, _controlLineId.ToString())
                 .GetAwaiter().GetResult();
             FuelModelCode = model.code;
             var fuelMoisture = _fuelMoistureProvider.GetFuelMoistureContent(_latlon)
@@ -88,12 +92,11 @@ namespace Fire
                 
                 var remaining = travelled % _nodeSizeMetres;
                 var newNode = new FireNode(this, _rothermelService, _weatherReportAtIgnition, newNodeCenter, 
-                                    _nodeSizeMetres, ref _visitedNodes) 
+                                    _nodeSizeMetres, _controlLineId, ref _visitedNodes) 
                     {
                         _distancesTravelled = {[direction] = remaining}
                     };
-                // add node only if burnable
-                if (!NonBurnableCodes.Contains(newNode.FuelModelCode)) newNodes.Add(newNode);
+                newNodes.Add(newNode);
                 
                 _visitedNodes.Add(nodeCenterIn2d, true);
 

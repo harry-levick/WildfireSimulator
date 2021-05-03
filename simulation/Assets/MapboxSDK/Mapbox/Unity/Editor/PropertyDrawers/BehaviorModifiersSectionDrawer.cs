@@ -1,11 +1,12 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using System.Collections;
-	using UnityEditor;
-	using Mapbox.Unity.Map;
-	using Mapbox.Unity.MeshGeneration.Modifiers;
+﻿#if UNITY_EDITOR
+using Mapbox.Editor;
+using Mapbox.Unity.Map;
+using Mapbox.Unity.MeshGeneration.Modifiers;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	public class BehaviorModifiersSectionDrawer
 	{
 		string objectId = "";
@@ -216,3 +217,4 @@
 		}
 	}
 }
+#endif

@@ -1,12 +1,10 @@
-namespace Mapbox.Unity.Map
-{
-	using System.Collections;
-	using System.Collections.Generic;
-	using UnityEngine;
-	using Mapbox.Unity.MeshGeneration.Modifiers;
-	using UnityEditor;
-	using Mapbox.Editor;
+#if UNITY_EDITOR
+using Mapbox.Unity.Map;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	[CustomPropertyDrawer(typeof(SpawnPrefabOptions))]
 	public class SpawnPrefabOptionsDrawer : PropertyDrawer
 	{
@@ -45,3 +43,4 @@ namespace Mapbox.Unity.Map
 		}
 	}
 }
+#endif

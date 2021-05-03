@@ -1,11 +1,13 @@
-namespace Mapbox.Editor
-{
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using NUnit.Framework;
-	using UnityEditor;
+#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Mapbox.Editor;
+using NUnit.Framework;
+using UnityEditor;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	// TreeElementUtility and TreeElement are useful helper classes for backend tree data structures.
 	// See tests at the bottom for examples of how to use.
 
@@ -315,3 +317,4 @@ namespace Mapbox.Editor
 
 
 }
+#endif

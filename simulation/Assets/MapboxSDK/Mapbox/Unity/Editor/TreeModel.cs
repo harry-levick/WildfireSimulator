@@ -1,9 +1,12 @@
-namespace Mapbox.Editor
+#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Mapbox.Editor;
+using NUnit.Framework;
+
+namespace MapboxSDK.Mapbox.Unity.Editor
 {
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using NUnit.Framework;
 	// The TreeModel is a utility class working on a list of serializable TreeElements where the order and the depth of each TreeElement define
 	// the tree structure. Note that the TreeModel itself is not serializable (in Unity we are currently limited to serializing lists/arrays) but the 
 	// input list is.
@@ -284,3 +287,4 @@ namespace Mapbox.Editor
 	#endregion
 
 }
+#endif

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using External;
+using Fire;
+using Mapbox.Unity.Map;
 using Mapbox.Utils;
 using Player;
 using UnityEngine;
@@ -17,6 +19,8 @@ namespace GameMenu
         public Button next30Min;
         public Button createControlLine;
         public GameObject holding;
+        public AbstractMap map;
+        public FireBehaviour fire;
 
         private bool _pauseClicked;
         
@@ -74,18 +78,18 @@ namespace GameMenu
             // raycast down from min
             if (Physics.Raycast(new Vector3(minWorld.x, aboveTerrain, minWorld.z), Vector3.down, out var hitInfo, Mathf.Infinity))
             {
-                minGeo = playerController.map.WorldToGeoPosition(hitInfo.point);
+                minGeo = map.WorldToGeoPosition(hitInfo.point);
             }
             else throw new Exception("Can't drop here.");
             
             // raycast down from max
             if (Physics.Raycast(new Vector3(maxWorld.x, aboveTerrain, maxWorld.z), Vector3.down, out hitInfo, Mathf.Infinity))
             {
-                maxGeo = playerController.map.WorldToGeoPosition(hitInfo.point);
+                maxGeo = map.WorldToGeoPosition(hitInfo.point);
             }
             else throw new Exception("Can't drop here.");
             
-            FuelModelProvider.PutControlLine(minGeo, maxGeo);
+            fire.PutControlLine(minGeo, maxGeo);
             
             
             holding = null;

@@ -1,14 +1,13 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEditor;
-	using UnityEngine;
-	using Mapbox.Unity.Map;
-	using Mapbox.VectorTile.ExtensionMethods;
-	using System.Linq;
-	using Mapbox.Platform.TilesetTileJSON;
-	using System.Collections.Generic;
-	using Mapbox.Editor;
+﻿#if UNITY_EDITOR
+using System.Collections.Generic;
+using Mapbox.Platform.TilesetTileJSON;
+using Mapbox.Unity.Map;
+using Mapbox.VectorTile.ExtensionMethods;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	[CustomPropertyDrawer(typeof(GeometryExtrusionOptions))]
 	public class GeometryExtrusionOptionsDrawer : PropertyDrawer
 	{
@@ -55,34 +54,34 @@
 				EditorHelper.CheckForModifiedProperty(property);
 			}
 
-			var sourceTypeValue = (Unity.Map.ExtrusionType)extrusionTypeProperty.enumValueIndex;
+			var sourceTypeValue = (global::Mapbox.Unity.Map.ExtrusionType)extrusionTypeProperty.enumValueIndex;
 
 			var minHeightProperty = property.FindPropertyRelative("minimumHeight");
 			var maxHeightProperty = property.FindPropertyRelative("maximumHeight");
 
 			var extrusionGeometryType = property.FindPropertyRelative("extrusionGeometryType");
-			var extrusionGeometryGUI = new GUIContent { text = "Geometry Type", tooltip = EnumExtensions.Description((Unity.Map.ExtrusionGeometryType)extrusionGeometryType.enumValueIndex) };
+			var extrusionGeometryGUI = new GUIContent { text = "Geometry Type", tooltip = EnumExtensions.Description((global::Mapbox.Unity.Map.ExtrusionGeometryType)extrusionGeometryType.enumValueIndex) };
 			EditorGUI.indentLevel++;
 
 			EditorGUI.BeginChangeCheck();
 
 			switch (sourceTypeValue)
 			{
-				case Unity.Map.ExtrusionType.None:
+				case global::Mapbox.Unity.Map.ExtrusionType.None:
 					break;
-				case Unity.Map.ExtrusionType.PropertyHeight:
+				case global::Mapbox.Unity.Map.ExtrusionType.PropertyHeight:
 					EditorGUILayout.PropertyField(extrusionGeometryType, extrusionGeometryGUI);
 					DrawPropertyDropDown(property, position);
 					break;
-				case Unity.Map.ExtrusionType.MinHeight:
+				case global::Mapbox.Unity.Map.ExtrusionType.MinHeight:
 					EditorGUILayout.PropertyField(extrusionGeometryType, extrusionGeometryGUI);
 					DrawPropertyDropDown(property, position);
 					break;
-				case Unity.Map.ExtrusionType.MaxHeight:
+				case global::Mapbox.Unity.Map.ExtrusionType.MaxHeight:
 					EditorGUILayout.PropertyField(extrusionGeometryType, extrusionGeometryGUI);
 					DrawPropertyDropDown(property, position);
 					break;
-				case Unity.Map.ExtrusionType.RangeHeight:
+				case global::Mapbox.Unity.Map.ExtrusionType.RangeHeight:
 					EditorGUILayout.PropertyField(extrusionGeometryType, extrusionGeometryGUI);
 					DrawPropertyDropDown(property, position);
 					EditorGUILayout.PropertyField(minHeightProperty);
@@ -92,7 +91,7 @@
 						EditorGUILayout.HelpBox("Maximum Height less than Minimum Height!", MessageType.Error);
 					}
 					break;
-				case Unity.Map.ExtrusionType.AbsoluteHeight:
+				case global::Mapbox.Unity.Map.ExtrusionType.AbsoluteHeight:
 					EditorGUILayout.PropertyField(extrusionGeometryType, extrusionGeometryGUI);
 					EditorGUILayout.PropertyField(maxHeightProperty, new GUIContent { text = "Height" });
 					break;
@@ -238,3 +237,4 @@
 		}
 	}
 }
+#endif

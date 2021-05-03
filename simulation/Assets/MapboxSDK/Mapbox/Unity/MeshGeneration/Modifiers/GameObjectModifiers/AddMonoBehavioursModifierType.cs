@@ -1,8 +1,8 @@
-namespace Mapbox.Unity.MeshGeneration.Modifiers
-{
-	using System;
-	using UnityEngine;
+using System;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.MeshGeneration.Modifiers.GameObjectModifiers
+{
 #if UNITY_EDITOR
 	using UnityEditor;
 #endif

@@ -1,10 +1,13 @@
-﻿namespace Mapbox.Unity.Utilities.DebugTools
-{
-	using UnityEngine;
-	using UnityEditor;
+﻿#if UNITY_EDITOR
+using Mapbox.Unity.Utilities.DebugTools;
+using MapboxSDK.Mapbox.Unity.Utilities.DebugTools;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	[CustomEditor(typeof(ScenesList))]
-	public class ScenesListEditor : Editor
+	public class ScenesListEditor : UnityEditor.Editor
 	{
 		public override void OnInspectorGUI()
 		{
@@ -18,3 +21,4 @@
 		}
 	}
 }
+#endif

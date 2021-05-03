@@ -1,4 +1,6 @@
-﻿namespace Mapbox.Unity.MeshGeneration.Modifiers
+﻿using MapboxSDK.Mapbox.Unity.MeshGeneration.Modifiers.GameObjectModifiers;
+
+namespace Mapbox.Unity.MeshGeneration.Modifiers
 {
 	using Mapbox.Unity.MeshGeneration.Data;
 	using Mapbox.Unity.MeshGeneration.Components;

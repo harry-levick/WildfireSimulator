@@ -1,9 +1,11 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using UnityEditor;
-	using Mapbox.Unity.MeshGeneration.Modifiers;
+﻿#if UNITY_EDITOR
+using Mapbox.Editor;
+using Mapbox.Unity.MeshGeneration.Modifiers;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	[CustomEditor(typeof(ModifierStack))]
 	public class ModifierStackEditor : UnityEditor.Editor
 	{
@@ -105,3 +107,4 @@
 		}
 	}
 }
+#endif

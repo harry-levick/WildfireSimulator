@@ -1,10 +1,10 @@
-namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using UnityEditor;
-	using Mapbox.Unity.Utilities;
-	using Mapbox.Unity.Map;
+#if UNITY_EDITOR
+using Mapbox.Unity.Utilities;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	/// <summary>
 	/// Custom property drawer for geocodes <para/>
 	/// Includes a search window to enable search of Lat/Lon via geocoder. 
@@ -32,3 +32,4 @@ namespace Mapbox.Editor
 		}
 	}
 }
+#endif

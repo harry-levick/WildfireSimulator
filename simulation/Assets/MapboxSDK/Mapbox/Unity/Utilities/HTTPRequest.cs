@@ -5,14 +5,15 @@
 //-----------------------------------------------------------------------
 
 
-namespace Mapbox.Unity.Utilities
-{
-	using System;
-	using UnityEngine.Networking;
-	using System.Collections;
-	using Mapbox.Platform;
-	using UnityEngine;
+using System;
+using System.Collections;
+using Mapbox.Platform;
+using Mapbox.Unity.Utilities;
+using MapboxSDK.Mapbox.Core.Platform;
+using UnityEngine.Networking;
 
+namespace MapboxSDK.Mapbox.Unity.Utilities
+{
 #if UNITY_EDITOR
 	using UnityEditor;
 #endif

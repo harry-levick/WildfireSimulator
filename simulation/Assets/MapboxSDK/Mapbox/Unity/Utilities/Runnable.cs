@@ -18,12 +18,13 @@
 // Uncomment to enable debugging of the Runnable class.
 //#define ENABLE_RUNNABLE_DEBUGGING
 
-namespace Mapbox.Unity.Utilities
-{
-    using UnityEngine;
-    using System.Collections;
-    using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Generic;
+using Mapbox.Unity.Utilities;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Utilities
+{
     /// <summary>
     /// Helper class for running co-routines without having to inherit from MonoBehavior.
     /// </summary>

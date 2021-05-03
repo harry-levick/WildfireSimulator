@@ -3,22 +3,26 @@
 //     Copyright (c) 2016 Mapbox. All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
-
+/*
+ 
 // TODO: figure out how run tests outside of Unity with .NET framework, something like '#if !UNITY'
+
+using System.Collections;
+using System.Linq;
+using Mapbox.Map;
+using Mapbox.MapboxSdkCs.UnitTest;
+using Mapbox.Utils;
+using MapboxSDK.Mapbox.Core.Platform;
+using NUnit.Framework;
+
 #if UNITY_5_6_OR_NEWER
 
 
-namespace Mapbox.MapboxSdkCs.UnitTest
+namespace MapboxSDK.Mapbox.Core.Tests.UnitTests.Editor
 {
-
-	using System.Linq;
-	using Mapbox.Map;
-	using Mapbox.Platform;
-	using Mapbox.Utils;
-	using NUnit.Framework;
 #if UNITY_5_6_OR_NEWER
 	using UnityEngine.TestTools;
-	using System.Collections;
+
 #endif
 
 
@@ -34,7 +38,7 @@ namespace Mapbox.MapboxSdkCs.UnitTest
 		public void SetUp()
 		{
 #if UNITY_5_6_OR_NEWER
-			_fs = new FileSource(Unity.MapboxAccess.Instance.Configuration.GetMapsSkuToken, Unity.MapboxAccess.Instance.Configuration.AccessToken);
+			_fs = new FileSource(global::Mapbox.Unity.MapboxAccess.Instance.Configuration.GetMapsSkuToken, global::Mapbox.Unity.MapboxAccess.Instance.Configuration.AccessToken);
 #else
 			// when run outside of Unity FileSource gets the access token from environment variable 'MAPBOX_ACCESS_TOKEN'
 			_fs = new FileSource();
@@ -77,10 +81,10 @@ namespace Mapbox.MapboxSdkCs.UnitTest
 			foreach (var tile in mapObserver.Tiles)
 			{
 				Assert.Greater(tile.LayerNames().Count, 0, "Tile contains at least one layer");
-				Mapbox.VectorTile.VectorTileLayer layer = tile.GetLayer("water");
+				global::Mapbox.VectorTile.VectorTileLayer layer = tile.GetLayer("water");
 				Assert.NotNull(layer, "Tile contains 'water' layer. Layers: {0}", string.Join(",", tile.LayerNames().ToArray()));
 				Assert.Greater(layer.FeatureCount(), 0, "Water layer has features");
-				Mapbox.VectorTile.VectorTileFeature feature = layer.GetFeature(0);
+				global::Mapbox.VectorTile.VectorTileFeature feature = layer.GetFeature(0);
 				Assert.Greater(feature.Geometry<long>().Count, 0, "Feature has geometry");
 				Assert.Greater(tile.GeoJson.Length, 1000);
 			}
@@ -136,3 +140,4 @@ namespace Mapbox.MapboxSdkCs.UnitTest
 }
 
 #endif
+ */

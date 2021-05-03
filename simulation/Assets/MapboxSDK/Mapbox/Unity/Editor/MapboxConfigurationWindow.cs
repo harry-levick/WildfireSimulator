@@ -1,19 +1,19 @@
-namespace Mapbox.Editor
-{
-	using System.Collections.Generic;
-	using UnityEngine;
-	using UnityEditor.SceneManagement;
-	using UnityEditor;
-	using System.IO;
-	using System.Collections;
-	using Mapbox.Unity;
-	using Mapbox.Tokens;
-	using Mapbox.Json;
-	using Mapbox.Unity.Utilities;
-	using Mapbox.Unity.Utilities.DebugTools;
-	using UnityEditor.Callbacks;
-	using System;
+#if UNITY_EDITOR
+using System.Collections.Generic;
+using System.IO;
+using Mapbox.Tokens;
+using Mapbox.Unity;
+using Mapbox.Unity.Utilities;
+using Mapbox.Unity.Utilities.DebugTools;
+using MapboxSDK.Mapbox.Unity.Utilities;
+using MapboxSDK.Mapbox.Unity.Utilities.DebugTools;
+using UnityEditor;
+using UnityEditor.Callbacks;
+using UnityEditor.SceneManagement;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	public class MapboxConfigurationWindow : EditorWindow
 	{
 		public static MapboxConfigurationWindow instance;
@@ -122,10 +122,10 @@ namespace Mapbox.Editor
 			Runnable.EnableRunnableInEditor();
 
 			//verify that the config file exists
-			_configurationFile = Path.Combine(Unity.Constants.Path.MAPBOX_RESOURCES_ABSOLUTE, Unity.Constants.Path.CONFIG_FILE);
-			if (!Directory.Exists(Unity.Constants.Path.MAPBOX_RESOURCES_ABSOLUTE))
+			_configurationFile = Path.Combine(global::Mapbox.Unity.Constants.Path.MAPBOX_RESOURCES_ABSOLUTE, global::Mapbox.Unity.Constants.Path.CONFIG_FILE);
+			if (!Directory.Exists(global::Mapbox.Unity.Constants.Path.MAPBOX_RESOURCES_ABSOLUTE))
 			{
-				Directory.CreateDirectory(Unity.Constants.Path.MAPBOX_RESOURCES_ABSOLUTE);
+				Directory.CreateDirectory(global::Mapbox.Unity.Constants.Path.MAPBOX_RESOURCES_ABSOLUTE);
 			}
 
 			if (!File.Exists(_configurationFile))
@@ -267,7 +267,7 @@ namespace Mapbox.Editor
 			_lastValidatedToken = _accessToken;
 
 			//save the config
-			_configurationFile = Path.Combine(Unity.Constants.Path.MAPBOX_RESOURCES_ABSOLUTE, Unity.Constants.Path.CONFIG_FILE);
+			_configurationFile = Path.Combine(global::Mapbox.Unity.Constants.Path.MAPBOX_RESOURCES_ABSOLUTE, global::Mapbox.Unity.Constants.Path.CONFIG_FILE);
 			var json = JsonUtility.ToJson(_mapboxAccess.Configuration);
 			File.WriteAllText(_configurationFile, json);
 		}
@@ -666,3 +666,4 @@ namespace Mapbox.Editor
 		}
 	}
 }
+#endif

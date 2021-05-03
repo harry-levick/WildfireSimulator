@@ -1,12 +1,12 @@
-namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using Mapbox.Unity.Map;
-	using UnityEditor;
-	using System;
-	using System.Collections.Generic;
-	using Mapbox.VectorTile.ExtensionMethods;
+#if UNITY_EDITOR
+using System;
+using Mapbox.Unity.Map;
+using Mapbox.VectorTile.ExtensionMethods;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	[CustomPropertyDrawer(typeof(PrefabItemOptions))]
 	public class PrefabItemOptionsDrawer : PropertyDrawer
 	{
@@ -221,3 +221,4 @@ namespace Mapbox.Editor
 		}
 	}
 }
+#endif

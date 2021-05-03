@@ -1,4 +1,6 @@
-﻿namespace Mapbox.Unity.Telemetry
+﻿using Mapbox.Unity.Telemetry;
+
+namespace MapboxSDK.Mapbox.Unity.Telemetry
 {
 	public static class TelemetryFactory
 	{
