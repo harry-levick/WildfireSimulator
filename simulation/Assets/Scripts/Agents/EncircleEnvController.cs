@@ -230,7 +230,7 @@ namespace Agents
                 // Hurry up penalty
                 item.agent.AddReward(-0.5f / maxEnvironmentSteps);
                 
-                if (radiusError > 0.05f || phaseError > 0.1f /*|| angularVelocityError > 0.005f*/)
+                if (radiusError > 0.05f || phaseError > 0.1f || angularVelocityError > 0.005f)
                 {
                     groupWon = false;
                 }
