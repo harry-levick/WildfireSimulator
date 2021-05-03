@@ -6,6 +6,9 @@
 
 
 // TODO: figure out how run tests outside of Unity with .NET framework, something like '#if !UNITY'
+
+using MapboxSDK.Mapbox.Core.Platform;
+
 #if UNITY_5_6_OR_NEWER
 
 namespace Mapbox.MapboxSdkCs.UnitTest

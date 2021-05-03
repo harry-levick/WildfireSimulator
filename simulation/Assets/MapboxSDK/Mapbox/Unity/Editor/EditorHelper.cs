@@ -1,14 +1,15 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using UnityEditor;
-	using System;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Reflection;
-	using Mapbox.Unity.Map;
-	using Mapbox.Unity.MeshGeneration.Data;
+﻿#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Mapbox.Unity.Map;
+using Mapbox.Unity.MeshGeneration.Data;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	/// <summary>
 	/// EditorHelper class provides methods for working with serialzed properties.
 	/// Methods in this class are based on the spacepuppy-unity-framework, available at the url below.
@@ -287,3 +288,4 @@
 		}
 	}
 }
+#endif

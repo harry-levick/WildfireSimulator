@@ -1,6 +1,7 @@
 ﻿
 
 using Mapbox.Unity;
+using MapboxSDK.Mapbox.Core.Platform;
 
 namespace Mapbox.Tokens
 {

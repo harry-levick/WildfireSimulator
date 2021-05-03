@@ -4,26 +4,21 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using Mapbox.Unity;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using Mapbox.Map;
+using Mapbox.Platform;
 
-namespace Mapbox.Platform
+namespace MapboxSDK.Mapbox.Core.Platform
 {
-	using Mapbox.Map;
-	using Mapbox.Unity.Utilities;
-	using System;
-	using System.Collections;
-	using System.Collections.Generic;
-	using System.Linq;
-	using System.Net;
-	using System.Net.Security;
 #if !NETFX_CORE
-	using System.Security.Cryptography.X509Certificates;
 #endif
 #if !UNITY_5_3_OR_NEWER
 	using System.Threading;
 #endif
 #if UNITY_EDITOR
-	using UnityEditor;
 #endif
 #if UNITY_5_3_OR_NEWER
 	using UnityEngine;

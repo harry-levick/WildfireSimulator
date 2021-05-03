@@ -1,8 +1,9 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Reflection;
-using UnityEditor;
+using WoLfulus.LineEnding;
 
-namespace WoLfulus.LineEnding
+namespace MapboxSDK.ThirdPartyAssets.WoLfulus.LineEnding.Editor
 {
     public static class LogEntry
     {
@@ -94,7 +95,7 @@ namespace WoLfulus.LineEnding
             {
                 var flags = BindingFlags.Instance | BindingFlags.Public;
 
-                var assembly = Assembly.GetAssembly(typeof(Editor));
+                var assembly = Assembly.GetAssembly(typeof(UnityEditor.Editor));
                 _type = assembly.GetType("UnityEditorInternal.LogEntry");
                 if (_type == null) // 2017 Fix
                 {
@@ -115,3 +116,4 @@ namespace WoLfulus.LineEnding
         }
     }
 }
+#endif

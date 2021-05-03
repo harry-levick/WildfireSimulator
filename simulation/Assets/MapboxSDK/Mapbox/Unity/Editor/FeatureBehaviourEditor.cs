@@ -1,11 +1,12 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEngine;
-	using UnityEditor;
-	using Mapbox.Unity.MeshGeneration.Components;
+﻿#if UNITY_EDITOR
+using Mapbox.Unity.MeshGeneration.Components;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	[CustomEditor(typeof(FeatureBehaviour))]
-	public class FeatureBehaviourEditor : Editor
+	public class FeatureBehaviourEditor : UnityEditor.Editor
 	{
 		FeatureBehaviour _beh;
 
@@ -25,3 +26,4 @@
 		}
 	}
 }
+#endif

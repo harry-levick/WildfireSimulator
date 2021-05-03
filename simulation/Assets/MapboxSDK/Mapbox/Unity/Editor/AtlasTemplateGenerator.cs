@@ -1,11 +1,11 @@
-﻿using UnityEngine;
-using UnityEditor;
-using System.Collections;
+﻿#if UNITY_EDITOR
 using System.Collections.Generic;
-using Mapbox.Unity.MeshGeneration.Data;
 using System.IO;
+using Mapbox.Unity.MeshGeneration.Data;
+using UnityEditor;
+using UnityEngine;
 
-namespace Mapbox.Editor
+namespace MapboxSDK.Mapbox.Unity.Editor
 {
 
 	class AtlasTemplateGenerator : EditorWindow
@@ -83,7 +83,7 @@ namespace Mapbox.Editor
 
 			EditorGUI.indentLevel++;
 
-			m_atlasInfo = EditorGUILayout.ObjectField("Atlas info:", m_atlasInfo, typeof(AtlasInfo), true) as Mapbox.Unity.MeshGeneration.Data.AtlasInfo;
+			m_atlasInfo = EditorGUILayout.ObjectField("Atlas info:", m_atlasInfo, typeof(AtlasInfo), true) as global::Mapbox.Unity.MeshGeneration.Data.AtlasInfo;
 
 			EditorGUILayout.Space();
 
@@ -337,3 +337,4 @@ namespace Mapbox.Editor
 		}
 	}
 }
+#endif

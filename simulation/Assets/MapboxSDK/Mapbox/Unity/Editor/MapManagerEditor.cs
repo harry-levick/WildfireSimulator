@@ -1,22 +1,22 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
+using Mapbox.Editor;
+using Mapbox.Unity.Map;
+using Mapbox.VectorTile.ExtensionMethods;
+using MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers;
+using UnityEditor;
+using UnityEngine;
 
-namespace Mapbox.Editor
+namespace MapboxSDK.Mapbox.Unity.Editor
 {
-	using UnityEngine;
-	using UnityEditor;
-	using Mapbox.Unity.Map;
-	using Mapbox.Platform.TilesetTileJSON;
-	using System.Collections.Generic;
-	using Mapbox.VectorTile.ExtensionMethods;
-
 	[CustomEditor(typeof(AbstractMap))]
 	[CanEditMultipleObjects]
-	public class MapManagerEditor : Editor
+	public class MapManagerEditor : UnityEditor.Editor
 	{
 		private string objectId = "";
 		private Color previewButtonColor = new Color(0.7f, 1.0f, 0.7f);
 		/// <summary>
-		/// Gets or sets a value indicating whether to show general section <see cref="T:Mapbox.Editor.MapManagerEditor"/>.
+		/// Gets or sets a value indicating whether to show general section <see cref="T:MapboxSDK.Mapbox.Unity.Editor.MapManagerEditor"/>.
 		/// </summary>
 		/// <value><c>true</c> then show general section; otherwise hide, <c>false</c>.</value>
 		bool ShowGeneral
@@ -31,7 +31,7 @@ namespace Mapbox.Editor
 			}
 		}
 		/// <summary>
-		/// Gets or sets a value to show or hide Image section<see cref="T:Mapbox.Editor.MapManagerEditor"/>.
+		/// Gets or sets a value to show or hide Image section<see cref="T:MapboxSDK.Mapbox.Unity.Editor.MapManagerEditor"/>.
 		/// </summary>
 		/// <value><c>true</c> if show image; otherwise, <c>false</c>.</value>
 		bool ShowImage
@@ -46,7 +46,7 @@ namespace Mapbox.Editor
 			}
 		}
 		/// <summary>
-		/// Gets or sets a value to show or hide Terrain section <see cref="T:Mapbox.Editor.MapManagerEditor"/>
+		/// Gets or sets a value to show or hide Terrain section <see cref="T:MapboxSDK.Mapbox.Unity.Editor.MapManagerEditor"/>
 		/// </summary>
 		/// <value><c>true</c> if show terrain; otherwise, <c>false</c>.</value>
 		bool ShowTerrain
@@ -62,7 +62,7 @@ namespace Mapbox.Editor
 		}
 
 		/// <summary>
-		/// Gets or sets a value to show or hide Map Layers section <see cref="T:Mapbox.Editor.MapManagerEditor"/> show features.
+		/// Gets or sets a value to show or hide Map Layers section <see cref="T:MapboxSDK.Mapbox.Unity.Editor.MapManagerEditor"/> show features.
 		/// </summary>
 		/// <value><c>true</c> if show features; otherwise, <c>false</c>.</value>
 		bool ShowMapLayers
@@ -368,3 +368,4 @@ namespace Mapbox.Editor
 		}
 	}
 }
+#endif

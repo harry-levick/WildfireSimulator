@@ -1,19 +1,21 @@
-namespace Mapbox.MapboxSdkCs.UnitTest
+#if UNITY_EDITOR
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using Mapbox.Map;
+using Mapbox.Platform.Cache;
+using Mapbox.Utils;
+using MapboxSDK.Mapbox.Unity.Utilities;
+using NUnit.Framework;
+using UnityEngine.TestTools;
+
+namespace MapboxSDK.Mapbox.Core.Tests.UnitTests.Editor
 {
-	using Mapbox.Map;
-	using Mapbox.Platform.Cache;
-	using Mapbox.Unity.Utilities;
-	using Mapbox.Utils;
-	using NUnit.Framework;
-	using System;
-	using System.Collections;
-	using System.Collections.Generic;
-	using System.Diagnostics;
-	using System.Globalization;
-	using System.IO;
-	using System.Linq;
 	using ued = UnityEngine.Debug;
-	using UnityEngine.TestTools;
 
 
 	[TestFixture]
@@ -298,3 +300,4 @@ namespace Mapbox.MapboxSdkCs.UnitTest
 
 	}
 }
+#endif

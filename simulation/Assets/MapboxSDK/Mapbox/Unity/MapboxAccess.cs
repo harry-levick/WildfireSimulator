@@ -1,4 +1,6 @@
 using MapboxAccountsUnity;
+using MapboxSDK.Mapbox.Core.Platform;
+using MapboxSDK.Mapbox.Unity.Telemetry;
 
 namespace Mapbox.Unity
 {

@@ -1,9 +1,10 @@
-﻿namespace Mapbox.Editor
-{
-	using UnityEditor;
-	using UnityEngine;
-	using Mapbox.Unity.Map;
+﻿#if UNITY_EDITOR
+using Mapbox.Unity.Map;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	[CustomPropertyDrawer(typeof(UnityLayerOptions))]
 	public class UnityLayerOptionsDrawer : PropertyDrawer
 	{
@@ -32,3 +33,4 @@
 		}
 	}
 }
+#endif

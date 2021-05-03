@@ -1,9 +1,11 @@
-﻿namespace Mapbox.Editor
-{
-	using Mapbox.Unity.MeshGeneration.Modifiers;
-	using UnityEditor;
-	using UnityEngine;
+﻿#if UNITY_EDITOR
+using Mapbox.Unity.MeshGeneration.Modifiers;
+using MapboxSDK.Mapbox.Unity.MeshGeneration.Modifiers.GameObjectModifiers;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	[CustomPropertyDrawer(typeof(AddMonoBehavioursModifierType))]
 	class AddMonoBehavioursModifierDrawer : PropertyDrawer
 	{
@@ -54,3 +56,4 @@
 		}
 	}
 }
+#endif

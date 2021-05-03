@@ -1,12 +1,15 @@
-namespace Mapbox.Unity.Map
-{
-	using UnityEngine;
-	using System.Collections.Generic;
-	using UnityEditor;
-	using Mapbox.Editor;
-	using UnityEditor.IMGUI.Controls;
-	using System.Linq;
+#if UNITY_EDITOR
 
+using System.Collections.Generic;
+using System.Linq;
+using Mapbox.Editor;
+using Mapbox.Unity.Map;
+using UnityEditor;
+using UnityEditor.IMGUI.Controls;
+using UnityEngine;
+
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	public class PointsOfInterestSubLayerPropertiesDrawer
 	{
 		string objectId = "";
@@ -230,3 +233,4 @@ namespace Mapbox.Unity.Map
 		}
 	}
 }
+#endif

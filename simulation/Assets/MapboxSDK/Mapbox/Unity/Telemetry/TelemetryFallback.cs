@@ -1,3 +1,5 @@
+using MapboxSDK.Mapbox.Unity.Utilities;
+
 namespace Mapbox.Unity.Telemetry
 {
 	using System.Collections.Generic;

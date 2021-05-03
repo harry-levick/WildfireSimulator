@@ -1,9 +1,10 @@
-﻿using System;
-namespace Mapbox.Editor
+﻿#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.IMGUI.Controls;
+using UnityEngine;
+
+namespace MapboxSDK.Mapbox.Unity.Editor
 {
-	using UnityEditor;
-	using UnityEditor.IMGUI.Controls;
-	using UnityEngine;
 	internal class FeatureSectionMultiColumnHeader : MultiColumnHeader
 	{
 		Mode m_Mode;
@@ -69,3 +70,4 @@ namespace Mapbox.Editor
 		}
 	}
 }
+#endif

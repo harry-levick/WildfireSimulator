@@ -1,16 +1,19 @@
 ﻿#if UNITY_EDITOR
-namespace Mapbox.Unity.Telemetry
-{
-	using System.Collections.Generic;
-	using System.Collections;
-	using Mapbox.Json;
-	using System;
-	using Mapbox.Unity.Utilities;
-	using UnityEngine;
-	using System.Text;
-	using UnityEditor;
-	using UnityEngine.Networking;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using Mapbox.Json;
+using Mapbox.Unity;
+using Mapbox.Unity.Telemetry;
+using Mapbox.Unity.Utilities;
+using MapboxSDK.Mapbox.Unity.Utilities;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Networking;
 
+namespace MapboxSDK.Mapbox.Unity.Telemetry
+{
 	public class TelemetryEditor : ITelemetryLibrary
 	{
 		string _url;
@@ -26,7 +29,7 @@ namespace Mapbox.Unity.Telemetry
 
 		public void Initialize(string accessToken)
 		{
-			_url = string.Format("{0}events/v2?access_token={1}", Mapbox.Utils.Constants.EventsAPI, accessToken);
+			_url = string.Format("{0}events/v2?access_token={1}", global::Mapbox.Utils.Constants.EventsAPI, accessToken);
 		}
 
 		public void SendTurnstile()
@@ -43,7 +46,7 @@ namespace Mapbox.Unity.Telemetry
 			List<Dictionary<string, object>> eventList = new List<Dictionary<string, object>>();
 			Dictionary<string, object> jsonDict = new Dictionary<string, object>();
 
-			long unixTimestamp = (long)Mapbox.Utils.UnixTimestampUtils.To(DateTime.UtcNow);
+			long unixTimestamp = (long)global::Mapbox.Utils.UnixTimestampUtils.To(DateTime.UtcNow);
 
 			jsonDict.Add("event", "appUserTurnstile");
 			jsonDict.Add("created", unixTimestamp);

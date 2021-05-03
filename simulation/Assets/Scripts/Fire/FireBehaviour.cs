@@ -18,9 +18,9 @@ namespace Fire
         public Vector3 ignitionPoint;                     // the point at which the fire was created.
         public AbstractMap map;
         public Weather weatherReport;                     // the weather report generated at ignition.
+        public int FireNodeSizeMetres = 200;              // the size of each node in metres.
         public bool Active { get; private set; }
         private int _minutesPassed;                       // number of minutes since the fire was started.
-        private const int FireNodeSizeMetres = 100;       // the size of each node in metres.
         private FireNode _fire;                           // the root node in the fire.
         private RothermelService _rothermelService;       // service used for surface fire rate of spread calculations.
         private Dictionary<Vector2, bool> _visitedNodes;  // internal fire nodes in the tree.
@@ -40,7 +40,8 @@ namespace Fire
             _perimeterPoint = Resources.Load(PerimeterPointPrefab) as GameObject;
             controlLineId = Guid.NewGuid();
 
-            _isLearning = GameObject.Find("Agent") != null;
+            _isLearning = true;
+            //_isLearning = GameObject.Find("Agent") != null;
         }
 
         public void Initialise(Vector3 point)
@@ -73,7 +74,7 @@ namespace Fire
             
             if (_counter == 10)
             {
-                AdvanceFire(100);
+                AdvanceFire(60);
                 _counter = 0;
                 PrintFireBoundary();
             }
@@ -103,12 +104,13 @@ namespace Fire
 
             _perimeterNodes = newPerimeterNodes;
             _minutesPassed += minutes;
+            Debug.Log($"Minutes: {_minutesPassed}");
         }
 
         public void PrintFireBoundary()
         {
-            _perimeterPoints.ForEach(point => point.Destroy());
-            _perimeterPoints.Clear();
+            //_perimeterPoints.ForEach(point => point.Destroy());
+            //_perimeterPoints.Clear();
             
             foreach (var nodeCenter in _perimeterNodes.Select(node => Instantiate(_perimeterPoint, node.Center, Quaternion.identity)))
             {
@@ -119,15 +121,6 @@ namespace Fire
         public void PutControlLine(Vector2d min, Vector2d max)
         {
             FuelModelProvider.PutControlLine(min, max, controlLineId.ToString());
-        }
-
-        public float ContainedPercentage()
-        {
-            if (!_perimeterNodes.Any()) return 0f;
-            
-            var numContained = (float) _perimeterNodes.Sum(node => node.IsContained ? 1 : 0);
-
-            return numContained / _perimeterNodes.Count * 100;
         }
         
         private void Stop() => Active = false;
@@ -151,20 +144,26 @@ namespace Fire
 
         private Weather GetWeatherReport(Vector2d latlon)
         {
-            if (!_isLearning)
-            {
-                return new WeatherProvider().GetWeatherReport(latlon)
-                    .GetAwaiter().GetResult();
-            }
-            
-            return new Weather
-            {
-                current = new Wind
-                {
-                    wind_deg = Random.Range(0, 360),
-                    wind_speed = Random.Range(1000, 2000)
-                }
-            };
+
+            return new WeatherProvider().GetWeatherReport(latlon)
+                .GetAwaiter().GetResult();
+
+        }
+
+        public Vector3 GetClosestPerimeterNode(Vector3 point)
+        {
+            var perimeterPoints = _perimeterNodes.Select(node => new Vector3(node.Center.x, point.y, node.Center.z)).ToList();
+            perimeterPoints = perimeterPoints.OrderBy(p => Vector3.Distance(p, point)).ToList();
+
+            return perimeterPoints.First();
+        }
+
+        public Vector3 GetFurthestPerimeterNode(Vector3 point)
+        {
+            var perimeterPoints = _perimeterNodes.Select(node => new Vector3(node.Center.x, point.y, node.Center.z))
+                .ToList();
+            perimeterPoints = perimeterPoints.OrderBy(p => Vector3.Distance(p, point)).ToList();
+            return perimeterPoints.Last();
         }
     }
 }

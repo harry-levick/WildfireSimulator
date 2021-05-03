@@ -1,10 +1,11 @@
-﻿using Mapbox.Unity.Map.TileProviders;
+﻿#if UNITY_EDITOR
+using Mapbox.Unity.Map;
+using Mapbox.Unity.Map.TileProviders;
+using UnityEditor;
+using UnityEngine;
 
-namespace Mapbox.Editor
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
 {
-	using UnityEditor;
-	using UnityEngine;
-	using Mapbox.Unity.Map;
 	[CustomPropertyDrawer(typeof(MapOptions))]
 	public class MapOptionsDrawer : PropertyDrawer
 	{
@@ -76,3 +77,4 @@ namespace Mapbox.Editor
 		}
 	}
 }
+#endif

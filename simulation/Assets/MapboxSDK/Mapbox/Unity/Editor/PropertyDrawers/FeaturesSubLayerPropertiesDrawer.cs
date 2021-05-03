@@ -1,18 +1,17 @@
-﻿namespace Mapbox.Editor
-{
-	using System.Collections.Generic;
-	using System.Linq;
-	using UnityEngine;
-	using UnityEditor;
-	using Mapbox.Unity.Map;
-	using UnityEditor.IMGUI.Controls;
-	using Mapbox.Unity.MeshGeneration.Modifiers;
-	using Mapbox.VectorTile.ExtensionMethods;
-	using Mapbox.Unity.MeshGeneration.Filters;
-	using Mapbox.Platform.TilesetTileJSON;
-	using Mapbox.Editor;
-	using System;
+﻿#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Mapbox.Editor;
+using Mapbox.Platform.TilesetTileJSON;
+using Mapbox.Unity.Map;
+using Mapbox.VectorTile.ExtensionMethods;
+using UnityEditor;
+using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	public class FeaturesSubLayerPropertiesDrawer
 	{
 		static float _lineHeight = EditorGUIUtility.singleLineHeight;
@@ -567,7 +566,7 @@
 				{
 					try
 					{
-						Unity.MapboxAccess.Instance.TileJSON.Get(sourceString, (response) =>
+						global::Mapbox.Unity.MapboxAccess.Instance.TileJSON.Get(sourceString, (response) =>
 						{
 							//if the code has reached this point it means that there is a valid access token
 							tileJSONResponse = response;
@@ -694,3 +693,4 @@
 		}
 	}
 }
+#endif

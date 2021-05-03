@@ -1,19 +1,20 @@
-namespace Mapbox.Editor
-{
-	using UnityEditor;
-	using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor
+{
 	[InitializeOnLoad]
 	public class ClearFileCache : MonoBehaviour
 	{
-
-
+		
 		[MenuItem("Mapbox/Clear File Cache")]
 		public static void ClearAllCachFiles()
 		{
-			Unity.MapboxAccess.Instance.ClearAllCacheFiles();
+			global::Mapbox.Unity.MapboxAccess.Instance.ClearAllCacheFiles();
 		}
 
 
 	}
 }
+#endif

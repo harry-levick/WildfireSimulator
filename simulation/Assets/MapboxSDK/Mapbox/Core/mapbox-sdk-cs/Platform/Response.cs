@@ -3,30 +3,27 @@
 //     Copyright (c) 2016 Mapbox. All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
-
 #if UNITY_2017_1_OR_NEWER
-#define UNITY
+	#define UNITY
 #endif
 
-namespace Mapbox.Platform
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using Mapbox.Platform;
+using Mapbox.Utils;
+using MapboxSDK.Mapbox.Unity.Utilities;
+
+namespace MapboxSDK.Mapbox.Core.Platform
 {
-
-	using System;
-	using System.Collections.Generic;
-	using System.Collections.ObjectModel;
-	using System.IO;
-	using System.Linq;
-	using System.Net;
-	using Utils;
-
-#if NETFX_CORE
-	using System.Net.Http;
-	using System.Threading.Tasks;
-#endif
-#if UNITY
-	using UnityEngine.Networking;
-	using Mapbox.Unity.Utilities;
-#endif
+	#if NETFX_CORE
+		using System.Net.Http;
+		using System.Threading.Tasks;
+	#endif
+	#if UNITY
+		using UnityEngine.Networking;
+	#endif
 
 	/// <summary> A response from a <see cref="IFileSource" /> request. </summary>
 	public class Response

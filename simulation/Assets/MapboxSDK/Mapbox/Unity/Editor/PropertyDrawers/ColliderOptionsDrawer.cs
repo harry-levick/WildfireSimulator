@@ -1,13 +1,11 @@
-﻿namespace Mapbox.Editor
-{
-	using System.Collections;
-	using System.Collections.Generic;
-	using UnityEditor;
-	using UnityEngine;
-	using Mapbox.Unity.Map;
-	using Mapbox.VectorTile.ExtensionMethods;
-	using Mapbox.Editor;
+﻿#if UNITY_EDITOR
+using Mapbox.Unity.Map;
+using Mapbox.VectorTile.ExtensionMethods;
+using UnityEditor;
+using UnityEngine;
 
+namespace MapboxSDK.Mapbox.Unity.Editor.PropertyDrawers
+{
 	[CustomPropertyDrawer(typeof(ColliderOptions))]
 	public class ColliderOptionsDrawer : PropertyDrawer
 	{
@@ -56,3 +54,4 @@
 		}
 	}
 }
+#endif
